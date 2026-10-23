@@ -1,0 +1,11 @@
+<div dir="rtl" style="max-width:600px;margin:0 auto;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+  <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);background-color:#1e3a8a;padding:30px;text-align:center;">
+    <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:bold;">{% block heading %}{{ subject }}{% endblock %}</h1>
+  </div>
+  <div style="padding:35px;font-size:18px;line-height:2;color:#1f2937;">
+    {% block content %}{% endblock %}
+  </div>
+  <div style="background:#f1f5f9;padding:20px;text-align:center;font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;">
+    {{ (tenant.email_footer if tenant and tenant.email_footer else ((tenant.name_ar ~ ' - ') if tenant else '') ~ 'نظام غياب الطلبة الإلكتروني') }}
+  </div>
+</div>

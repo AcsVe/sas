@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}الخروج من الحصة{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>الخروج من الحصة <span class="count-pill" data-count-for="t-leaves">{{ rows|length }}</span></h1>
+  <div class="actions-row">
+    <a class="btn small {{ '' if out_only else 'secondary' }}" href="{{ url_for('leaves.index', section=section.id if section else None, date=day.isoformat(), out=None if out_only else 1) }}">🚪 خارج الصف الآن</a>
+    <a class="btn secondary small" href="{{ url_for('leaves.index', section=section.id if section else None, date=day.isoformat(), date_to=d_to.isoformat() if d_to else None, export='xlsx') }}">⬇ تصدير Excel</a>
+  </div>
+</div>
+<form method="get" class="card">
+  <div class="row">
+    <div><label>الشعبة</label><select name="section"><option value="">كل شعبي</option>
+      {% for sec in sections %}<option value="{{ sec.id }}" {% if section and section.id == sec.id %}selected{% endif %}>{{ sec.grade.stage.name }} — {{ sec.full_name }}</option>{% endfor %}</select></div>
+    <div><label>من تاريخ</label><input type="date" name="date" value="{{ day.isoformat() }}"></div>
+    <div><label>إلى تاريخ</label><input type="date" name="date_to" value="{{ d_to.isoformat() if d_to else '' }}"></div>
+  </div>
+  <button class="btn small" type="submit">عرض</button>
+</form>
+
+{% if has_perm('class_leave.record') %}
+<details class="card panel" {% if section %}open{% endif %}>
+  <summary>➕ تسجيل خروج من الحصة</summary>
+  {% if not section %}<p class="muted">اختر الشعبة من الأعلى لتظهر قائمة طلبتها.</p>
+  {% else %}
+  <form method="post" action="{{ url_for('leaves.create') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="section" value="{{ section.id }}">
+    <div class="row">
+      <div><label>النوع *</label><select name="leave_type_id" required>{% for t in types %}<option value="{{ t.id }}">{{ t.name }}{% if not t.needs_return %} (لا يعود){% endif %}</option>{% endfor %}</select></div>
+      <div><label>التاريخ</label><input type="date" name="leave_date" value="{{ day.isoformat() }}"></div>
+      <div><label>وقت الخروج</label><input type="time" name="leave_time" value="{{ now }}"></div>
+      <div><label>ملاحظات</label><input type="text" name="notes"></div>
+    </div>
+    <label>الطلبة ({{ section.full_name }}) <span class="checks" style="display:inline-flex;font-weight:500"><input type="checkbox" data-check-all="student_ids" aria-label="تحديد الكل"> الكل</span></label>
+    <div class="dept-checks">{% for s in students %}<label class="checks"><input type="checkbox" name="student_ids" value="{{ s.id }}"> {{ s.full_name }}</label>{% else %}<span class="muted">لا يوجد طلبة</span>{% endfor %}</div>
+    <button class="btn" type="submit">تسجيل الخروج</button>
+  </form>
+  {% endif %}
+</details>
+{% endif %}
+
+<div class="list-tools"><input type="search" data-list-search="t-leaves" placeholder="بحث" aria-label="بحث"></div>
+<form class="bulk-bar" method="post" action="{{ url_for('leaves.bulk') }}" data-bulk-for="t-leaves">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  <button class="btn small ok" name="action" value="return">↩ عاد الآن</button>
+  {% if has_perm('class_leave.approve') %}
+  <button class="btn small secondary" name="action" value="approve">اعتماد</button>
+  <button class="btn small secondary" name="action" value="reject">رفض</button>
+  {% endif %}
+  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من سجلات الخروج؟">حذف</button>
+</form>
+<div class="card table-wrap"><table data-table id="t-leaves">
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
+<th data-sort="date">التاريخ</th><th data-filter="text">الطالب</th><th data-filter="select">الشعبة</th><th data-filter="select">النوع</th>
+<th data-filter="text">الخروج</th><th data-filter="select">العودة</th><th data-filter="select">الحالة</th><th data-filter="text">ملاحظات</th><th data-filter="select">سجّله</th><th data-nosort></th></tr></thead>
+<tbody>{% for l in rows %}
+<tr data-id="{{ l.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ l.id }}" aria-label="تحديد"></td>
+<td class="mono">{{ l.leave_date }}</td>
+<td><a href="{{ url_for('students.profile', student_id=l.student.id) }}">{{ l.student.full_name }}</a></td>
+<td>{{ l.student.section.full_name }}</td><td>{{ l.leave_type.name }}</td><td class="mono">{{ l.leave_time }}</td>
+<td data-value="{{ 'خارج الصف' if l.is_out else (l.return_time or '—') }}">{% if l.is_out %}<span class="badge warn">خارج الصف</span>{% else %}<span class="mono">{{ l.return_time or '—' }}</span>{% endif %}</td>
+<td data-value="{{ l.status_label }}"><span class="badge {{ {'approved':'ok','rejected':'bad'}.get(l.status,'warn') }}">{{ l.status_label }}</span></td>
+<td>{{ l.notes or '' }}</td><td>{{ l.creator.full_name if l.creator else '—' }}</td>
+<td><a class="btn small secondary" href="{{ url_for('leaves.edit', leave_id=l.id) }}">تعديل</a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="11" class="muted">لا توجد سجلات خروج.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

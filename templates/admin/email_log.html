@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}سجل البريد{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>سجل البريد</h1>
+<div style="display:flex;gap:8px">
+  <a class="btn secondary" href="{{ url_for('admin.email_log') }}">الكل</a>
+  <a class="btn secondary" href="{{ url_for('admin.email_log', failed=1) }}">الفاشلة فقط</a>
+  <form method="post" action="{{ url_for('admin.email_log_ack') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">تعليم الأخطاء كمقروءة</button></form>
+</div></div>
+<form class="bulk-bar" method="post" action="{{ url_for('admin.email_log_bulk') }}" data-bulk-for="t-mail">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  <button class="btn small secondary" name="action" value="ack">تعليم كمقروء</button>
+  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من سطور سجل البريد؟">حذف</button>
+</form>
+<div class="card table-wrap"><table data-table id="t-mail">
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th><th data-filter="text">الوقت (UTC)</th><th data-filter="select">الحالة</th><th data-filter="text">المستلمون</th><th data-filter="text">الموضوع</th><th data-filter="text">الخطأ</th></tr></thead>
+<tbody>{% for r in rows %}
+<tr data-id="{{ r.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ r.id }}" aria-label="تحديد"></td><td class="mono">{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+<td data-value="{{ {'sent':'أُرسل','skipped':'لم يُرسل'}.get(r.status,'فشل') }}">{% if r.status == 'sent' %}<span class="badge ok">أُرسل</span>{% elif r.status == 'skipped' %}<span class="badge warn">لم يُرسل</span>{% else %}<span class="badge bad">فشل</span>{% endif %}
+{% if r.status != 'sent' and not r.acknowledged %} <span class="badge warn">جديد</span>{% endif %}</td>
+<td class="mono">{{ r.recipients }}</td><td>{{ r.subject }}</td><td class="muted">{{ r.error or '' }}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد رسائل</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

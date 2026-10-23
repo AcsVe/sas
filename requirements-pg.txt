@@ -1,0 +1,2 @@
+# only for running on PostgreSQL instead of the default SQLite
+psycopg[binary]==3.2.10

@@ -1,0 +1,14 @@
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.36
+Werkzeug==3.0.6
+Flask-WTF==1.2.2
+Flask-Migrate==4.0.7
+Flask-Compress==1.25
+python-dotenv==1.0.1
+requests==2.32.3
+APScheduler==3.10.4
+pywebpush==2.5.0
+waitress==3.0.2
+openpyxl==3.1.5
+tzdata

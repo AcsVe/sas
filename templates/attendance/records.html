@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}سجلات الغياب{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>سجلات الغياب والتأخر <span class="count-pill" data-count-for="t-records">{{ rows|length }}</span></h1>
+  <div class="actions-row">
+    <a class="btn secondary small" href="{{ url_for('attendance.records', export='xlsx', **args.to_dict()) }}">⬇ تصدير Excel</a>
+    {% if has_perm('guardians.notify') %}<a class="btn small" href="{{ url_for('attendance.notify_today') }}">✉ إشعار أولياء أمور غياب اليوم</a>{% endif %}
+  </div>
+</div>
+<form method="get" class="card">
+  <div class="row">
+    <div><label>من تاريخ</label><input type="date" name="date_from" value="{{ d_from.isoformat() }}"></div>
+    <div><label>إلى تاريخ</label><input type="date" name="date_to" value="{{ d_to.isoformat() if d_to else '' }}"></div>
+    <div><label>الشعبة</label><select name="section"><option value="">الكل</option>
+      {% for sec in sections %}<option value="{{ sec.id }}" {% if args.get('section') == sec.id|string %}selected{% endif %}>{{ sec.grade.stage.name }} — {{ sec.full_name }}</option>{% endfor %}</select></div>
+    <div><label>النوع</label><select name="kind"><option value="">الكل</option>
+      {% for k, l in kinds %}<option value="{{ k }}" {% if args.get('kind') == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div><label>الحالة</label><select name="status"><option value="">الكل</option>
+      {% for k, l in statuses %}<option value="{{ k }}" {% if args.get('status') == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+  </div>
+  {% if args.get('student') %}<input type="hidden" name="student" value="{{ args.get('student') }}">{% endif %}
+  <button class="btn small" type="submit">تطبيق</button>
+  <a class="btn small secondary" href="{{ url_for('attendance.records') }}">اليوم</a>
+</form>
+
+<div class="list-tools"><input type="search" data-list-search="t-records" placeholder="بحث بالاسم أو الملاحظات" aria-label="بحث"></div>
+<form class="bulk-bar" method="post" action="{{ url_for('attendance.records_bulk') }}" data-bulk-for="t-records">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  {% if has_perm('attendance.approve') %}
+  <button class="btn small ok" name="action" value="approve">اعتماد</button>
+  <button class="btn small secondary" name="action" value="reject">رفض</button>
+  {% endif %}
+  {% if has_perm('guardians.notify') %}<button class="btn small secondary" name="action" value="notify">✉ إشعار أولياء الأمور</button>{% endif %}
+  {% if has_perm('attendance.record') %}<button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من السجلات؟">حذف</button>{% endif %}
+</form>
+<div class="card table-wrap"><table data-table id="t-records">
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
+<th data-sort="date" data-filter="text">التاريخ</th><th data-filter="text">الطالب</th><th data-filter="select">المرحلة</th><th data-filter="select">الشعبة</th>
+<th data-filter="select">النوع</th><th>الوقت</th><th data-filter="select">الحالة</th><th data-filter="text">ملاحظات</th>
+<th data-filter="select">سجّله</th><th data-filter="select">إشعار ولي الأمر</th><th data-nosort></th></tr></thead>
+<tbody>{% for r in rows %}
+<tr data-id="{{ r.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ r.id }}" aria-label="تحديد"></td>
+<td class="mono">{{ r.record_date }}</td>
+<td><a href="{{ url_for('students.profile', student_id=r.student.id) }}">{{ r.student.full_name }}</a></td>
+<td>{{ r.student.section.grade.stage.name }}</td><td>{{ r.student.section.full_name }}</td>
+<td>{{ r.kind_label }}</td>
+<td class="mono">{% if r.all_day %}طوال اليوم{% else %}{{ r.time_from or '' }}{% if r.time_to %} – {{ r.time_to }}{% endif %}{% endif %}</td>
+<td data-value="{{ r.status_label }}"><span class="badge {{ {'approved':'ok','rejected':'bad'}.get(r.status,'warn') }}">{{ r.status_label }}</span></td>
+<td>{{ r.notes or '' }}{% if r.attachment %} <a href="{{ url_for('attendance.attachment', att_id=r.attachment.id) }}" title="{{ r.attachment.original_name }}">📎</a>{% endif %}</td>
+<td>{{ r.creator.full_name if r.creator else '—' }}</td>
+<td data-value="{{ 'أُشعر' if r.notified_at else 'لم يُشعر' }}">{% if r.notified_at %}<span class="badge ok">أُشعر{% if r.notified_count > 1 %} ×{{ r.notified_count }}{% endif %}</span>{% elif not r.student.guardian_email %}<span class="badge warn">بلا بريد</span>{% else %}لم يُشعر{% endif %}</td>
+<td>{% if has_perm('attendance.record') %}<a class="btn small secondary" href="{{ url_for('attendance.record_form', rec_id=r.id, next=request.full_path) }}">تعديل</a>{% endif %}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="12" class="muted">لا توجد سجلات في هذه الفترة.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

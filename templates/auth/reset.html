@@ -1,0 +1,19 @@
+{% extends 'auth/_layout.html' %}
+{% block title %}تعيين كلمة المرور{% endblock %}
+{% block heading %}تعيين كلمة مرور جديدة{% endblock %}
+{% block body %}
+{% if invalid %}
+<div class="alert danger">الرابط غير صالح أو منتهي الصلاحية أو استُخدم مسبقًا.</div>
+<div class="links"><a href="{{ url_for('auth.forgot') }}">طلب رابط جديد</a></div>
+{% else %}
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="field"><label for="password">كلمة المرور الجديدة</label>
+    <input type="password" id="password" name="password" autocomplete="new-password" dir="ltr" required></div>
+  <div class="field"><label for="confirm">تأكيدها</label>
+    <input type="password" id="confirm" name="confirm" autocomplete="new-password" dir="ltr" required></div>
+  <p class="hint">10 أحرف على الأقل، وتحتوي حرفًا ورقمًا.</p>
+  <button class="btn" type="submit">حفظ</button>
+</form>
+{% endif %}
+{% endblock %}

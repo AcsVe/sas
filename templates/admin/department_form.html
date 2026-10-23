@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}قسم{% endblock %}
+{% block content %}
+<h1>{{ 'تعديل القسم: ' ~ d.name if d.id else 'قسم جديد' }}</h1>
+<div class="card"><form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <div><label>اسم القسم</label><input type="text" name="name" value="{{ d.name or '' }}" required></div>
+    <div><label>الكود</label><input type="text" name="code" value="{{ d.code or '' }}" dir="ltr" required>
+      <p class="hint">معرّف داخلي فقط، ولم يعد يُستخدم للدخول.</p></div>
+    <div><label>الأيقونة</label><input type="text" name="icon" value="{{ d.icon or '🏢' }}"></div>
+    <div><label>النوع</label><select name="dept_type">{% for k, v in types %}
+      <option value="{{ k }}" {% if d.dept_type == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></div>
+  </div>
+  <div class="row">
+    <div><label>اسم المسؤول</label><input type="text" name="manager_name" value="{{ d.manager_name or '' }}"></div>
+    <div><label>البريد (أكثر من بريد يُفصل بفاصلة)</label><input type="text" name="emails" value="{{ d.emails or '' }}" dir="ltr"></div>
+    <div><label>الترتيب</label><input type="number" name="sort_order" value="{{ d.sort_order or 0 }}"></div>
+    <div><label>الحالة</label><select name="is_active">
+      <option value="1" {% if d.is_active %}selected{% endif %}>فعّال</option>
+      <option value="0" {% if not d.is_active %}selected{% endif %}>متوقف</option></select></div>
+  </div>
+  <button class="btn" type="submit">حفظ</button>
+  <a class="btn secondary" href="{{ url_for('admin.departments') }}">إلغاء</a>
+</form></div>
+{% endblock %}

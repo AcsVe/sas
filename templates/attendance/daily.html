@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}التسجيل اليومي{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>التسجيل اليومي{% if section %}: {{ section.grade.stage.name }} — {{ section.full_name }}{% endif %}</h1>
+  <form method="get" class="actions-row">
+    <select name="section" aria-label="الشعبة" style="width:auto" required><option value="">— اختر الشعبة —</option>
+      {% for sec in sections %}<option value="{{ sec.id }}" {% if section and section.id == sec.id %}selected{% endif %}>{{ sec.grade.stage.name }} — {{ sec.full_name }}</option>{% endfor %}</select>
+    <input type="date" name="date" value="{{ day.isoformat() }}" style="width:auto" aria-label="التاريخ">
+    <button class="btn small secondary" type="submit">عرض</button>
+  </form>
+</div>
+{% if not sections %}<div class="alert warning">لا توجد شعب ضمن نطاقك — اطلب من مدير النظام ربط حسابك بمرحلة.</div>{% endif %}
+{% if holiday %}<div class="alert info">هذا اليوم عطلة معتمدة: <b>{{ holiday.title }}</b> ({{ holiday.start_date }} إلى {{ holiday.end_date }}).</div>{% endif %}
+{% if not school_day %}<div class="alert warning">هذا اليوم ليس من أيام الدوام لهذه المرحلة.</div>{% endif %}
+
+{% if section %}
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="section" value="{{ section.id }}">
+  <input type="hidden" name="date" value="{{ day.isoformat() }}">
+  <div class="card">
+    <div class="row">
+      <div><label>النوع</label><select name="kind">{% for k, l in kinds %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></div>
+      <div><label>المدة</label><select name="all_day"><option value="1">طوال اليوم</option><option value="0">وقت محدد</option></select></div>
+      <div data-show-when="all_day=0"><label>من الساعة</label><input type="time" name="time_from"></div>
+      <div data-show-when="all_day=0"><label>إلى الساعة</label><input type="time" name="time_to"></div>
+    </div>
+    <div><label>ملاحظات (اختياري)</label><input type="text" name="notes"></div>
+    <p class="hint">حدِّد الطلبة من الجدول ثم اضغط «تسجيل للمحددين». من سُجّل له النوع نفسه في اليوم نفسه يُتجاوز.</p>
+    <button class="btn" type="submit">تسجيل للمحددين</button>
+    <a class="btn secondary" href="{{ url_for('attendance.records', section=section.id, date_from=day.isoformat(), date_to=day.isoformat()) }}">سجلات هذا اليوم</a>
+  </div>
+  <div class="list-tools"><input type="search" data-list-search="t-daily" placeholder="بحث بالاسم" aria-label="بحث">
+    <span class="count-pill" data-count-for="t-daily">{{ students|length }}</span></div>
+  <div class="card table-wrap"><table data-table id="t-daily">
+  <thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
+  <th data-filter="text">الطالب</th><th data-filter="text">الرقم</th><th data-filter="select">المسجّل اليوم</th><th data-filter="select">الآن</th></tr></thead>
+  <tbody>{% for s in students %}{% set ex = existing.get(s.id, []) %}
+  <tr data-id="{{ s.id }}"><td class="sel"><input type="checkbox" data-row-select name="student_ids" value="{{ s.id }}" aria-label="تحديد {{ s.full_name }}"></td>
+  <td><a href="{{ url_for('students.profile', student_id=s.id) }}">{{ s.full_name }}</a></td>
+  <td class="mono">{{ s.student_number or '—' }}</td>
+  <td data-value="{{ ex|map(attribute='kind_label')|join('، ') or '—' }}">{% for r in ex %}<span class="badge {{ {'approved':'ok','rejected':'bad'}.get(r.status,'warn') }}">{{ r.kind_label }}</span> {% else %}—{% endfor %}</td>
+  <td data-value="{{ 'خارج الصف' if leaves_out.get(s.id) else 'في الصف' }}">{% if leaves_out.get(s.id) %}<span class="badge warn">خارج الصف: {{ leaves_out[s.id].leave_type.name }}</span>{% else %}—{% endif %}</td></tr>
+  {% else %}<tr class="empty-row"><td colspan="5" class="muted">لا يوجد طلبة فعّالون في هذه الشعبة.</td></tr>{% endfor %}</tbody></table></div>
+</form>
+{% endif %}
+{% endblock %}

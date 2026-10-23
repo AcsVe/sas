@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% from 'structure/_field.html' import field %}
+{% block title %}تعديل {{ spec.singular }}{% endblock %}
+{% block content %}
+{% include 'structure/_tabs.html' %}
+<h1>تعديل {{ spec.singular }}</h1>
+{% for err in errors %}<div class="alert danger">{{ err }}</div>{% endfor %}
+<div class="card"><form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+  {% for f in spec.fields %}{{ field(f, o[f.name], options.get(f.name, []), weekdays) }}{% endfor %}
+  </div>
+  <button class="btn" type="submit">حفظ</button>
+  <a class="btn secondary" href="{{ url_for('structure.items', key=key) }}">رجوع</a>
+</form></div>
+{% endblock %}

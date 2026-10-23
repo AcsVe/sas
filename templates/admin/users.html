@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}المستخدمون{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>المستخدمون <span class="count-pill" data-count-for="t-users">{{ users|length }}</span></h1>
+  <a class="btn" href="{{ url_for('admin.user_new') }}">+ مستخدم جديد</a>
+</div>
+
+<div class="list-tools">
+  <input type="search" data-list-search="t-users c-users" placeholder="بحث بالاسم أو اسم المستخدم أو البريد أو القسم" aria-label="بحث">
+  <div class="seg" role="group" aria-label="طريقة العرض">
+    <button type="button" data-view="cards" class="on">بطاقات</button>
+    <button type="button" data-view="table">جدول</button>
+  </div>
+</div>
+<div class="chips" style="margin-bottom:12px" aria-label="تصفية حسب الدور">
+  <button type="button" class="on" data-group-chip="c-users" data-group="">الكل ({{ users|length }})</button>
+  {% for r in roles %}<button type="button" data-group-chip="c-users" data-group="r{{ r.id }}">{{ r.name }} ({{ role_counts.get(r.id, 0) }})</button>{% endfor %}
+  <button type="button" data-group-chip="c-users" data-group="inactive">الموقوفون ({{ users|rejectattr('is_active')|list|length }})</button>
+</div>
+
+<form class="bulk-bar" method="post" action="{{ url_for('admin.users_bulk') }}" data-bulk-for="t-users c-users">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  <button class="btn small ok" name="action" value="activate">تفعيل</button>
+  <button class="btn small secondary" name="action" value="deactivate" data-confirm="إيقاف {n} من الحسابات؟ ستُنهى جلساتهم.">إيقاف</button>
+  <button class="btn small secondary" name="action" value="logout_all">إنهاء الجلسات</button>
+  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من الحسابات نهائيًا؟ لا يمكن التراجع.">حذف</button>
+</form>
+
+{% macro status(u) -%}
+  {% if not u.is_active %}<span class="badge bad">موقوف</span>
+  {% elif u.locked_until and u.locked_until > now %}<span class="badge warn">مقفل مؤقتًا</span>
+  {% else %}<span class="badge ok">فعّال</span>{% endif %}
+{%- endmacro %}
+
+<div data-view-pane="cards">
+  <div class="cards" data-cards id="c-users">
+  {% for u in users %}
+    {% set groups = {} %}
+    {% for c in u.permission_codes|sort if c in permissions %}
+      {% set _ = groups.setdefault(permissions[c][1], []).append(permissions[c][0]) %}
+    {% endfor %}
+    <div class="card-item{% if not u.is_active %} inactive{% endif %}" data-id="{{ u.id }}"
+         data-group="{% for r in u.roles %}r{{ r.id }} {% endfor %}{% if not u.is_active %}inactive{% endif %}"
+         data-search="{{ u.full_name }} {{ u.username }} {{ u.email or '' }} {{ u.employee_number or '' }} {% for d in u.departments %}{{ d.name }} {% endfor %}{% for r in u.roles %}{{ r.name }} {% endfor %}">
+      <label class="sel"><input type="checkbox" data-row-select value="{{ u.id }}" aria-label="تحديد {{ u.full_name }}"></label>
+      <div class="who">
+        <span class="avatar">{{ u.full_name[:1] }}</span>
+        <div><b>{{ u.full_name }}</b><br><small class="mono muted">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</small></div>
+      </div>
+      <div>{% for r in u.roles %}<span class="badge">{{ r.name }}</span> {% else %}<span class="badge warn">بلا دور</span>{% endfor %} {{ status(u) }}</div>
+      {% if u.departments %}<div class="muted" style="font-size:.85rem">🏢 {% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}، {% endif %}{% endfor %}</div>{% endif %}
+      <div class="tasks">
+        {% for g, items in groups|dictsort %}<div><b>{{ g }}:</b> {{ items|join('، ') }}</div>
+        {% else %}<span class="muted">لا مهام مسندة — أسند دورًا من «تعديل».</span>{% endfor %}
+      </div>
+      <small class="muted">آخر دخول: {{ u.last_login.strftime('%Y-%m-%d %H:%M') if u.last_login else 'لم يدخل بعد' }}</small>
+      <div class="actions">
+        <a class="btn small secondary" href="{{ url_for('admin.user_edit', user_id=u.id) }}">تعديل</a>
+        {% if u.locked_until and u.locked_until > now %}
+        <form method="post" action="{{ url_for('admin.user_action', user_id=u.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn small" name="action" value="unlock">فك القفل</button></form>{% endif %}
+        {% if u.email %}
+        <form method="post" action="{{ url_for('admin.user_action', user_id=u.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn small secondary" name="action" value="send_reset" data-confirm="إرسال رابط إعادة تعيين كلمة المرور إلى {{ u.email }}؟">رابط كلمة المرور</button></form>{% endif %}
+      </div>
+    </div>
+  {% else %}<p class="muted">لا يوجد مستخدمون.</p>{% endfor %}
+  </div>
+</div>
+
+<div data-view-pane="table" hidden>
+<div class="card table-wrap"><table data-table id="t-users">
+<thead><tr>
+  <th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
+  <th data-filter="text">الاسم</th><th data-filter="text">اسم المستخدم</th><th data-filter="text">البريد</th>
+  <th data-filter="select">الأدوار</th><th data-filter="text">الأقسام</th><th data-filter="select">الحالة</th>
+  <th data-sort="date">آخر دخول</th><th data-nosort></th></tr></thead>
+<tbody>
+{% for u in users %}
+<tr data-id="{{ u.id }}">
+  <td class="sel"><input type="checkbox" data-row-select value="{{ u.id }}" aria-label="تحديد {{ u.full_name }}"></td>
+  <td>{{ u.full_name }}</td><td class="mono">{{ u.username }}</td><td class="mono">{{ u.email or '—' }}</td>
+  <td data-value="{{ u.roles|map(attribute='name')|join('، ') }}">{% for r in u.roles %}<span class="badge">{{ r.name }}</span> {% endfor %}</td>
+  <td>{% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}، {% endif %}{% endfor %}</td>
+  <td data-value="{% if not u.is_active %}موقوف{% elif u.locked_until and u.locked_until > now %}مقفل مؤقتًا{% else %}فعّال{% endif %}">{{ status(u) }}</td>
+  <td class="mono" data-value="{{ u.last_login.isoformat() if u.last_login else '' }}">{{ u.last_login.strftime('%Y-%m-%d') if u.last_login else '—' }}</td>
+  <td><a class="btn small secondary" href="{{ url_for('admin.user_edit', user_id=u.id) }}">تعديل</a></td>
+</tr>
+{% else %}<tr class="empty-row"><td colspan="9" class="muted">لا يوجد مستخدمون</td></tr>{% endfor %}
+</tbody></table></div>
+</div>
+{% endblock %}

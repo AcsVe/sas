@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% from 'structure/_field.html' import field %}
+{% block title %}{{ spec.title }}{% endblock %}
+{% block content %}
+{% include 'structure/_tabs.html' %}
+<div class="toolbar">
+  <h1>{{ spec.title }} <span class="count-pill" data-count-for="t-{{ key }}">{{ rows|length }}</span></h1>
+  {% if parent_id %}<a class="btn secondary small" href="{{ url_for('structure.items', key=key) }}">عرض الكل</a>{% endif %}
+</div>
+
+<details class="card panel" {% if not rows %}open{% endif %}>
+  <summary>➕ إضافة {{ spec.singular }}</summary>
+  <form method="post" action="{{ url_for('structure.create', key=key) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row">
+    {% for f in spec.fields %}
+      {% set v = (parent_id if f.name == spec.parent else f.default) %}
+      {{ field(f, v, options.get(f.name, []), weekdays, multi_names=(f.name == spec.names)) }}
+    {% endfor %}
+    </div>
+    <button class="btn" type="submit">إضافة</button>
+  </form>
+</details>
+
+<div class="list-tools">
+  <input type="search" data-list-search="t-{{ key }}" placeholder="بحث" aria-label="بحث">
+</div>
+<form class="bulk-bar" method="post" action="{{ url_for('structure.bulk', key=key) }}" data-bulk-for="t-{{ key }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  {% if not spec.no_active %}
+  <button class="btn small ok" name="action" value="activate">تفعيل</button>
+  <button class="btn small secondary" name="action" value="deactivate">إيقاف</button>
+  {% endif %}
+  {% if key == 'years' %}<button class="btn small secondary" name="action" value="current">تعيينها السنة الحالية</button>{% endif %}
+  {% if key == 'periods' %}
+  <details class="inline-pick"><summary>نسخ إلى أيام</summary>
+    {% for d, name in weekdays %}<label><input type="checkbox" name="to_days" value="{{ d }}"> {{ name }}</label>{% endfor %}</details>
+  <button class="btn small secondary" name="action" value="copy_day">نسخ المحدد</button>
+  {% endif %}
+  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n}؟ ما له سجلات تابعة لا يُحذف.">حذف</button>
+</form>
+
+<div class="card table-wrap"><table data-table id="t-{{ key }}">
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
+{% for c in spec.columns %}<th {% if c.filter %}data-filter="{{ c.filter }}"{% endif %} {% if c.sort %}data-sort="{{ c.sort }}"{% endif %}>{{ c.label }}</th>{% endfor %}
+<th data-nosort></th></tr></thead>
+<tbody>
+{% for o in rows %}
+<tr data-id="{{ o.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ o.id }}" aria-label="تحديد"></td>
+{% for c in spec.columns %}{% set val = c.value(o) %}
+<td {% if c.sort == 'date' %}class="mono"{% endif %}>{% if c.label in ('الحالة',) %}<span class="badge {{ 'ok' if val == 'فعّال' else 'bad' }}">{{ val }}</span>{% else %}{{ val }}{% endif %}</td>
+{% endfor %}
+<td style="white-space:nowrap"><a class="btn small secondary" href="{{ url_for('structure.edit', key=key, obj_id=o.id) }}">تعديل</a>
+{% if spec.child %}<a class="btn small secondary" href="{{ url_for('structure.items', key=spec.child[0], parent=o.id) }}">{{ spec.child[1] }}</a>{% endif %}
+{% if key == 'sections' and has_perm('students.view') %}<a class="btn small secondary" href="{{ url_for('students.index', section=o.id) }}">الطلبة</a>{% endif %}
+{% if key == 'sections' and has_perm('timetable.manage') %}<a class="btn small secondary" href="{{ url_for('timetable.section', section_id=o.id) }}">الجدول</a>{% endif %}
+</td></tr>
+{% else %}<tr class="empty-row"><td colspan="{{ spec.columns|length + 2 }}" class="muted">لا توجد بيانات بعد — أضفها من الأعلى.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

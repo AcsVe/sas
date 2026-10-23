@@ -1,0 +1,63 @@
+"""Guardian e-mail about absences — manual only (one record, the ticked records, or all of today's).
+
+plan(records) splits the chosen records into: to send (grouped per student), without a guardian e-mail,
+and already notified (skipped unless resend). send(plan) sends one message per student via MS Graph
+(utils.mail, an EmailLog row per attempt) and stamps notified_at / notified_count on each record sent."""
+from flask import g
+
+from extensions import db
+from models.core import utcnow
+from utils.helpers import split_emails
+from utils.mail import send_email
+
+
+def plan(records, resend=False):
+    groups, no_email, already = {}, [], []
+    for r in records:
+        if r.status == 'rejected':
+            continue
+        if r.notified_at and not resend:
+            already.append(r)
+            continue
+        if not split_emails(r.student.guardian_email):
+            no_email.append(r)
+            continue
+        groups.setdefault(r.student_id, []).append(r)
+    return {'groups': [sorted(v, key=lambda x: (x.record_date, x.kind)) for v in groups.values()],
+            'no_email': no_email, 'already': already}
+
+
+def _facts(r):
+    when = 'طوال اليوم' if r.all_day else ' – '.join(t for t in (r.time_from, r.time_to) if t)
+    return (r.kind_label, f'{r.record_date.isoformat()} ({when})' if when else r.record_date.isoformat())
+
+
+def send(p):
+    """→ (sent_students, failed: [(student name, error)])."""
+    tenant = g.tenant
+    sent, failed = 0, []
+    for recs in p['groups']:
+        st = recs[0].student
+        dates = sorted({r.record_date for r in recs})
+        subject = f'إشعار غياب: {st.full_name} — {dates[0].isoformat()}' + \
+            (f' إلى {dates[-1].isoformat()}' if len(dates) > 1 else '')
+        res = send_email(
+            st.guardian_email, subject, 'emails/notice.html', tenant, kind='guardian_absence',
+            entity=('student', st.id),
+            heading='إشعار من المدرسة بغياب الطالب أو تأخره',
+            greeting=st.guardian_name or 'ولي أمر الطالب',
+            paragraphs=[f'نحيطكم علمًا بما سُجّل للطالب {st.full_name} '
+                        f'في {st.section.grade.name} / الشعبة {st.section.name}:'],
+            items=[_facts(r) for r in recs], items_color='#1e3a8a',
+            note='نرجو التواصل مع إدارة المدرسة إن كان لديكم عذر أو استفسار.', note_label='ملاحظة',
+            after=['هذه رسالة آلية من نظام غياب الطلبة؛ يُرجى عدم الرد عليها.'])
+        if res:
+            now = utcnow()
+            for r in recs:
+                r.notified_at = now
+                r.notified_count = (r.notified_count or 0) + 1
+            db.session.commit()
+            sent += 1
+        else:
+            failed.append((st.full_name, res.error))
+    return sent, failed

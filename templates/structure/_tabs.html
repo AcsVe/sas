@@ -1,0 +1,7 @@
+<nav class="tabs" aria-label="الهيكل المدرسي">
+{% for k, label in tabs %}
+  {% if (k == 'periods' and has_perm('timetable.manage')) or (k != 'periods' and has_perm('structure.manage')) %}
+  <a href="{{ url_for('structure.items', key=k) }}" class="{{ 'on' if k == key else '' }}">{{ label }}</a>
+  {% endif %}
+{% endfor %}
+</nav>

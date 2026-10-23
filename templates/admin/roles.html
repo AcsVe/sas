@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}الأدوار{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>الأدوار والصلاحيات</h1><a class="btn" href="{{ url_for('admin.role_form') }}">+ دور جديد</a></div>
+<form class="bulk-bar" method="post" action="{{ url_for('admin.roles_bulk') }}" data-bulk-for="t-roles">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من الأدوار؟ لا تُحذف الأدوار الأساسية ولا المسندة إلى مستخدمين.">حذف</button>
+</form>
+<div class="card table-wrap"><table data-table id="t-roles">
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
+<th data-filter="text">الدور</th><th data-filter="text">الوصف</th><th data-sort="num">المستخدمون</th><th data-filter="text">الصلاحيات</th><th data-nosort></th></tr></thead>
+<tbody>{% for r in roles %}
+<tr data-id="{{ r.id }}"><td class="sel">{% if not r.is_system %}<input type="checkbox" data-row-select value="{{ r.id }}" aria-label="تحديد {{ r.name }}">{% endif %}</td>
+<td><b>{{ r.name }}</b>{% if r.is_system %} <span class="badge">أساسي</span>{% endif %}</td><td class="muted">{{ r.description or '' }}</td>
+<td><a href="{{ url_for('admin.users') }}">{{ role_counts.get(r.id, 0) }}</a></td>
+<td>{% for c in r.permission_codes|sort %}<span class="badge">{{ permissions[c][0] if c in permissions else c }}</span> {% endfor %}</td>
+<td><a class="btn small secondary" href="{{ url_for('admin.role_form', role_id=r.id) }}">تعديل</a></td></tr>
+{% endfor %}</tbody></table></div>
+{% endblock %}

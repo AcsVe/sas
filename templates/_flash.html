@@ -1,0 +1,4 @@
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}<div class="alert {{ cat }}">{{ msg }}</div>{% endfor %}
+{% endwith %}
+{% if errors %}<div class="alert danger"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}

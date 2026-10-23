@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}حصصي{% endblock %}
+{% block content %}
+<h1>حصصي <span class="count-pill" data-count-for="t-mine">{{ rows|length }}</span></h1>
+<div class="card table-wrap"><table data-table id="t-mine">
+<thead><tr><th data-filter="select">اليوم</th><th data-filter="text">الحصة</th><th>الوقت</th><th data-filter="select">الشعبة</th><th data-filter="select">المادة</th><th data-nosort></th></tr></thead>
+<tbody>{% for e in rows %}{% set p = periods[e.period_id] %}{% set s = sections[e.section_id] %}
+<tr><td>{{ day_names[p.weekday] }}</td><td>{{ p.label }}</td><td class="mono">{{ p.start_time }} – {{ p.end_time }}</td>
+<td>{{ s.grade.stage.name }} — {{ s.full_name }}</td><td>{{ e.subject or '—' }}</td>
+<td>{% if has_perm('class_leave.record') %}<a class="btn small secondary" href="{{ url_for('leaves.index', section=s.id) }}">خروج من الحصة</a>{% endif %}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد حصص مرتبطة بحسابك في الجدول.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

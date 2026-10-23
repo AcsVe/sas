@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}موظف{% endblock %}
+{% block content %}
+<h1>الموظف: {{ e.full_name }}</h1>
+{% for err in errors %}<div class="alert danger">{{ err }}</div>{% endfor %}
+<div class="card"><form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <div><label>الاسم الكامل *</label><input type="text" name="full_name" value="{{ e.full_name or '' }}" required></div>
+    <div><label>الرقم الوظيفي</label><input type="text" name="employee_number" value="{{ e.employee_number or '' }}" dir="ltr"></div>
+    <div><label>البريد الإلكتروني</label><input type="email" name="email" value="{{ e.email or '' }}" dir="ltr"></div>
+    <div><label>الهاتف</label><input type="text" name="phone" value="{{ e.phone or '' }}" dir="ltr"></div>
+  </div>
+  <div class="row">
+    <div><label>القسم</label><select name="department_id"><option value="">—</option>
+      {% for d in departments %}<option value="{{ d.id }}" {% if e.department_id == d.id %}selected{% endif %}>{{ d.icon }} {{ d.name }}{% if not d.is_active %} (متوقف){% endif %}</option>{% endfor %}</select></div>
+    <div><label>المسمى الوظيفي</label><input type="text" name="job_title" value="{{ e.job_title or '' }}"></div>
+    <div><label>تاريخ التعيين</label><input type="date" name="hire_date" value="{{ e.hire_date.isoformat() if e.hire_date else '' }}"></div>
+    <div><label>الحالة</label><select name="is_active">
+      <option value="1" {% if e.is_active %}selected{% endif %}>فعّال</option>
+      <option value="0" {% if not e.is_active %}selected{% endif %}>موقوف</option></select></div>
+  </div>
+  <div><label>ملاحظات</label><textarea name="notes" rows="2">{{ e.notes or '' }}</textarea></div>
+  <p class="hint">حساب الدخول: {% if e.user %}<b class="mono">{{ e.user.username }}</b>{% if has_perm('users.manage') %} — <a href="{{ url_for('admin.user_edit', user_id=e.user.id) }}">تعديل الحساب</a>{% endif %}{% if stage_names %} — المراحل: {{ stage_names|join('، ') }}{% endif %}{% else %}لا يوجد (يُنشأ من قائمة الموظفين ← «إنشاء حسابات دخول»){% endif %}</p>
+  <button class="btn" type="submit">حفظ</button>
+  <a class="btn secondary" href="{{ url_for('employees.index') }}">رجوع</a>
+</form></div>
+
+{% endblock %}

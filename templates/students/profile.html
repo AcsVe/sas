@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}{{ s.full_name }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>{{ s.full_name }} {% if not s.is_active %}<span class="badge bad">موقوف</span>{% endif %}</h1>
+  <div class="actions-row">
+    {% if has_perm('attendance.record') %}<a class="btn small" href="{{ url_for('attendance.record_form', student=s.id) }}">➕ تسجيل غياب أو تأخر</a>{% endif %}
+    {% if has_perm('class_leave.record') %}<a class="btn small secondary" href="{{ url_for('leaves.index', section=s.section_id) }}">خروج من الحصة</a>{% endif %}
+    {% if has_perm('students.manage') %}<a class="btn small secondary" href="{{ url_for('students.form', student_id=s.id) }}">تعديل البيانات</a>{% endif %}
+  </div>
+</div>
+<div class="card info-grid">
+  <div><small>رقم الطالب</small><b class="mono">{{ s.student_number or '—' }}</b></div>
+  <div><small>الشعبة</small><b>{{ s.section.grade.stage.name }} — {{ s.section.full_name }}</b></div>
+  <div><small>الجنس</small><b>{{ genders.get(s.gender, '—') }}</b></div>
+  <div><small>ولي الأمر</small><b>{{ s.guardian_name or '—' }}</b>{% if s.guardian_relation %} <small>({{ s.guardian_relation }})</small>{% endif %}</div>
+  <div><small>هاتف ولي الأمر</small><b class="mono">{{ s.guardian_phone or '—' }}</b></div>
+  <div><small>بريد ولي الأمر</small><b class="mono">{{ s.guardian_email or '—' }}</b></div>
+</div>
+<div class="kpis">
+  {% for k, label in kinds %}
+  <a class="kpi {{ 'zero' if not by_kind[k] else ('bad' if k == 'absent' else 'warn') }}" href="{{ url_for('attendance.records', student=s.id, kind=k, date_from='2000-01-01') }}"><div class="n">{{ by_kind[k] }}</div><div class="l">{{ label }}</div></a>
+  {% endfor %}
+</div>
+
+<h2>سجلات الغياب والتأخر</h2>
+<div class="card table-wrap"><table data-table id="t-st-rec">
+<thead><tr><th data-sort="date">التاريخ</th><th data-filter="select">النوع</th><th>الوقت</th><th data-filter="select">الحالة</th>
+<th data-filter="text">ملاحظات</th><th data-filter="select">إشعار ولي الأمر</th><th>مرفق</th></tr></thead>
+<tbody>{% for r in records %}
+<tr><td class="mono">{{ r.record_date }}</td><td>{{ r.kind_label }}</td>
+<td class="mono">{% if r.all_day %}طوال اليوم{% else %}{{ r.time_from or '' }}{% if r.time_to %} – {{ r.time_to }}{% endif %}{% endif %}</td>
+<td><span class="badge {{ {'approved':'ok','rejected':'bad'}.get(r.status,'warn') }}">{{ r.status_label }}</span></td>
+<td>{{ r.notes or '' }}</td>
+<td data-value="{{ 'أُشعر' if r.notified_at else 'لم يُشعر' }}">{% if r.notified_at %}<span class="badge ok">أُشعر{% if r.notified_count > 1 %} ×{{ r.notified_count }}{% endif %}</span>{% else %}—{% endif %}</td>
+<td>{% if r.attachment %}<a href="{{ url_for('attendance.attachment', att_id=r.attachment.id) }}">📎 {{ r.attachment.original_name }}</a>{% endif %}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="7" class="muted">لا توجد سجلات</td></tr>{% endfor %}</tbody></table></div>
+
+<h2>الخروج من الحصة</h2>
+<div class="card table-wrap"><table data-table id="t-st-lv">
+<thead><tr><th data-sort="date">التاريخ</th><th data-filter="select">النوع</th><th>الخروج</th><th>العودة</th><th data-filter="select">الحالة</th><th data-filter="text">ملاحظات</th></tr></thead>
+<tbody>{% for l in leaves %}
+<tr><td class="mono">{{ l.leave_date }}</td><td>{{ l.leave_type.name }}</td><td class="mono">{{ l.leave_time }}</td>
+<td class="mono">{% if l.is_out %}<span class="badge warn">خارج الصف</span>{% else %}{{ l.return_time or '—' }}{% endif %}</td>
+<td>{{ l.status_label }}</td><td>{{ l.notes or '' }}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد سجلات</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

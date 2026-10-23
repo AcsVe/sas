@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% from 'holidays/_fields.html' import holiday_fields %}
+{% block title %}العطل{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>العطل <span class="count-pill" data-count-for="t-hol">{{ rows|length }}</span></h1></div>
+{% if has_perm('holidays.manage') %}
+<details class="card panel" {% if not rows %}open{% endif %}>
+  <summary>➕ إضافة عطلة</summary>
+  <form method="post" action="{{ url_for('holidays.form') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ holiday_fields({}, choices, scopes, sees_all) }}
+    {% if has_perm('holidays.approve') %}<div class="checks" style="margin:10px 0"><label><input type="checkbox" name="approve_now" value="1" checked> اعتمادها مباشرة</label></div>{% endif %}
+    <button class="btn" type="submit">إضافة</button>
+  </form>
+</details>
+{% endif %}
+<div class="list-tools"><input type="search" data-list-search="t-hol" placeholder="بحث" aria-label="بحث"></div>
+<form class="bulk-bar" method="post" action="{{ url_for('holidays.bulk') }}" data-bulk-for="t-hol">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  {% if has_perm('holidays.approve') %}
+  <button class="btn small ok" name="action" value="approve">اعتماد</button>
+  <button class="btn small secondary" name="action" value="reject">رفض</button>
+  {% endif %}
+  {% if has_perm('holidays.manage') %}<button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من العطل؟">حذف</button>{% endif %}
+</form>
+<div class="card table-wrap"><table data-table id="t-hol">
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
+<th data-filter="text">العنوان</th><th data-sort="date">من</th><th data-sort="date">إلى</th><th data-sort="num">الأيام</th>
+<th data-filter="select">النطاق</th><th data-filter="text">يشمل</th><th data-filter="select">الحالة</th><th data-filter="select">الفترة</th><th data-nosort></th></tr></thead>
+<tbody>{% for h in rows %}
+<tr data-id="{{ h.id }}"><td class="sel">{% if can_touch[h.id] %}<input type="checkbox" data-row-select value="{{ h.id }}" aria-label="تحديد">{% endif %}</td>
+<td>{{ h.title }}</td><td class="mono">{{ h.start_date }}</td><td class="mono">{{ h.end_date }}</td>
+<td>{{ (h.end_date - h.start_date).days + 1 }}</td>
+<td>{{ dict(scopes)[h.scope_type] }}</td><td>{{ names[h.id] }}</td>
+<td data-value="{{ h.status_label }}"><span class="badge {{ {'approved':'ok','rejected':'bad'}.get(h.status,'warn') }}">{{ h.status_label }}</span></td>
+<td>{{ 'قادمة' if h.start_date > today else ('جارية' if h.end_date >= today else 'منتهية') }}</td>
+<td>{% if can_touch[h.id] and has_perm('holidays.manage') %}<a class="btn small secondary" href="{{ url_for('holidays.form', hid=h.id) }}">تعديل</a>{% endif %}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="10" class="muted">لا توجد عطل.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

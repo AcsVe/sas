@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}دور{% endblock %}
+{% block content %}
+<h1>{{ 'تعديل الدور: ' ~ role.name if role.id else 'دور جديد' }}</h1>
+{% set have = role.permission_codes if role.id else [] %}
+<div class="card"><form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <div><label>اسم الدور</label><input type="text" name="name" value="{{ role.name or '' }}" required></div>
+    <div><label>الوصف</label><input type="text" name="description" value="{{ role.description or '' }}"></div>
+  </div>
+  {% for group in permissions.values()|map(attribute=1)|unique %}
+  <h2>{{ group }}</h2><div class="checks">
+  {% for code, meta in permissions.items() if meta[1] == group %}
+    <label><input type="checkbox" name="perms" value="{{ code }}" {% if code in have %}checked{% endif %}> {{ meta[0] }}</label>
+  {% endfor %}</div>
+  {% endfor %}<br>
+  <button class="btn" type="submit">حفظ</button>
+  <a class="btn secondary" href="{{ url_for('admin.roles') }}">إلغاء</a>
+</form></div>
+{% endblock %}

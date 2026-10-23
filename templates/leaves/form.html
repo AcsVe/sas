@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}تعديل خروج{% endblock %}
+{% block content %}
+<h1>تعديل خروج: {{ lv.student.full_name }}</h1>
+{% for err in errors %}<div class="alert danger">{{ err }}</div>{% endfor %}
+<div class="card"><form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <div><label>النوع</label><select name="leave_type_id">{% for t in types %}<option value="{{ t.id }}" {% if t.id == lv.leave_type_id %}selected{% endif %}>{{ t.name }}</option>{% endfor %}</select></div>
+    <div><label>التاريخ</label><input type="date" name="leave_date" value="{{ lv.leave_date.isoformat() }}"></div>
+    <div><label>وقت الخروج</label><input type="time" name="leave_time" value="{{ lv.leave_time }}"></div>
+    <div><label>وقت العودة</label><input type="time" name="return_time" value="{{ lv.return_time or '' }}"></div>
+    {% if has_perm('class_leave.approve') %}<div><label>الحالة</label><select name="status">{% for k, l in statuses %}<option value="{{ k }}" {% if lv.status == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>{% endif %}
+  </div>
+  <div><label>ملاحظات</label><input type="text" name="notes" value="{{ lv.notes or '' }}"></div><br>
+  <button class="btn" type="submit">حفظ</button>
+  <a class="btn secondary" href="{{ url_for('leaves.index', section=lv.student.section_id, date=lv.leave_date.isoformat()) }}">رجوع</a>
+</form></div>
+{% endblock %}

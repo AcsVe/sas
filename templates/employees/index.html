@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}الموظفون{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>سجل الموظفين <span class="count-pill" data-count-for="t-emps">{{ employees|length }}</span></h1>
+  <a class="btn secondary" href="{{ url_for('employees.template') }}">⬇ نموذج ملف الاستيراد</a>
+</div>
+
+<div class="grid2">
+<details class="card panel" {% if not employees %}open{% endif %}>
+  <summary>➕ إضافة موظف</summary>
+  <form method="post" action="{{ url_for('employees.form') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row">
+      <div><label>الاسم الكامل *</label><input type="text" name="full_name" required></div>
+      <div><label>الرقم الوظيفي</label><input type="text" name="employee_number" dir="ltr"></div>
+      <div><label>البريد الإلكتروني</label><input type="email" name="email" dir="ltr"></div>
+    </div>
+    <div class="row">
+      <div><label>الهاتف</label><input type="text" name="phone" dir="ltr"></div>
+      <div><label>القسم</label><select name="department_id"><option value="">—</option>
+        {% for d in departments if d.is_active %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select></div>
+      <div><label>المسمى الوظيفي</label><input type="text" name="job_title"></div>
+    </div>
+    <button class="btn" type="submit">إضافة</button>
+  </form>
+</details>
+
+<details class="card panel" {% if not employees %}open{% endif %}>
+  <summary>📋 إضافة قائمة أو استيراد ملف</summary>
+  <form method="post" action="{{ url_for('employees.import_list') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>الصق القائمة (سطر لكل موظف، والأعمدة مفصولة بفاصلة أو Tab كما تُنسخ من Excel)</label>
+    <textarea name="text" rows="5" placeholder="{{ field_labels|join('، ') }}&#10;محمد أحمد، 1023، m.ahmad@example.org، 0790000000، تقنية المعلومات، فني"></textarea>
+    <p class="hint">ترتيب الأعمدة: {{ field_labels|join(' ← ') }}. إن كان السطر الأول عناوين أعمدة (بالعربية أو الإنجليزية) فيُعتمد ترتيبها.</p>
+    <div class="row">
+      <div><label>أو ملف Excel ‏(.xlsx) أو CSV</label><input type="file" name="file" accept=".xlsx,.xlsm,.csv,.txt,.tsv"></div>
+      <div><label>القسم الافتراضي لمن لا قسم له</label><select name="department_id"><option value="">—</option>
+        {% for d in departments if d.is_active %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select></div>
+    </div>
+    <div class="checks"><label><input type="checkbox" name="update" value="1"> تحديث بيانات الموجودين (المطابقة بالرقم الوظيفي ثم البريد)</label></div>
+    <button class="btn" type="submit">استيراد</button>
+  </form>
+</details>
+</div>
+
+<div class="list-tools">
+  <input type="search" data-list-search="t-emps" placeholder="بحث بالاسم أو الرقم أو البريد أو القسم" aria-label="بحث">
+</div>
+<form class="bulk-bar" method="post" action="{{ url_for('employees.bulk') }}" data-bulk-for="t-emps">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  <button class="btn small ok" name="action" value="activate">تفعيل</button>
+  <button class="btn small secondary" name="action" value="deactivate">إيقاف</button>
+  <select name="department_id" aria-label="نقل إلى قسم" style="width:auto;padding:5px 8px"><option value="">— بلا قسم —</option>
+    {% for d in departments if d.is_active %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select>
+  <button class="btn small secondary" name="action" value="move">نقل إلى القسم</button>
+  {% if has_perm('users.manage') %}
+  <select name="role_key" aria-label="دور الحسابات الجديدة" style="width:auto;padding:5px 8px">
+    {% for r in roles %}<option value="{{ r.key }}" {% if r.key == 'teacher' %}selected{% endif %}>{{ r.name }}</option>{% endfor %}</select>
+  {% if stages %}<details class="inline-pick"><summary>المراحل</summary>
+    {% for st in stages %}<label><input type="checkbox" name="stage_ids" value="{{ st.id }}"> {{ st.name }}</label>{% endfor %}</details>{% endif %}
+  <label style="display:inline-flex;gap:4px;font-weight:500;margin:0"><input type="checkbox" name="send_reset" value="1" checked> مع رابط كلمة المرور</label>
+  <button class="btn small secondary" name="action" value="accounts" data-confirm="إنشاء حسابات دخول بالدور المختار لـ {n} من الموظفين الذين لهم بريد؟">إنشاء حسابات دخول</button>
+  {% endif %}
+  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من الموظفين؟ حسابات الدخول المرتبطة بهم لا تُحذف.">حذف</button>
+</form>
+
+<div class="card table-wrap"><table data-table id="t-emps">
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
+<th data-filter="text">الاسم</th><th data-filter="text">الرقم الوظيفي</th><th data-filter="text">البريد</th><th data-filter="text">الهاتف</th>
+<th data-filter="select">القسم</th><th data-filter="select">المسمى الوظيفي</th><th data-filter="select">الحساب</th>
+<th data-filter="text">المراحل</th><th data-filter="select">الحالة</th><th data-nosort></th></tr></thead>
+<tbody>
+{% for e in employees %}
+<tr data-id="{{ e.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ e.id }}" aria-label="تحديد {{ e.full_name }}"></td>
+<td>{{ e.full_name }}</td><td class="mono">{{ e.employee_number or '—' }}</td><td class="mono">{{ e.email or '—' }}</td>
+<td class="mono">{{ e.phone or '—' }}</td>
+<td data-value="{{ e.department.name if e.department else '—' }}">{{ (e.department.icon ~ ' ' ~ e.department.name) if e.department else '—' }}</td>
+<td>{{ e.job_title or '—' }}</td>
+<td data-value="{{ 'له حساب' if e.user_id else 'بلا حساب' }}">{% if e.user %}<span class="badge ok mono">{{ e.user.username }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+<td>{{ (scopes.get(e.user_id) or [])|join('، ') or '—' }}</td>
+<td data-value="{{ 'فعّال' if e.is_active else 'موقوف' }}">{% if e.is_active %}<span class="badge ok">فعّال</span>{% else %}<span class="badge bad">موقوف</span>{% endif %}</td>
+<td><a class="btn small secondary" href="{{ url_for('employees.form', emp_id=e.id) }}">تعديل</a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="11" class="muted">لا يوجد موظفون بعد — أضفهم من الأعلى.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% from 'students/_fields.html' import student_fields %}
+{% block title %}تعديل طالب{% endblock %}
+{% block content %}
+<h1>تعديل: {{ s.full_name }}</h1>
+{% for err in errors %}<div class="alert danger">{{ err }}</div>{% endfor %}
+<div class="card"><form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {{ student_fields(s, sections, genders) }}
+  <div class="row">
+    <div><label>الاسم بالإنجليزية</label><input type="text" name="full_name_en" value="{{ s.full_name_en or '' }}" dir="ltr"></div>
+    <div><label>الحالة</label><select name="is_active">
+      <option value="1" {% if s.is_active %}selected{% endif %}>فعّال</option>
+      <option value="0" {% if not s.is_active %}selected{% endif %}>موقوف</option></select></div>
+  </div>
+  <div><label>ملاحظات</label><textarea name="notes" rows="2">{{ s.notes or '' }}</textarea></div><br>
+  <button class="btn" type="submit">حفظ</button>
+  <a class="btn secondary" href="{{ url_for('students.profile', student_id=s.id) }}">رجوع</a>
+</form></div>
+{% endblock %}

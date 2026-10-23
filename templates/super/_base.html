@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>{% include '_head.html' %}<title>المدير العام</title></head>
+<body>
+<header class="topbar"><span class="brand">⚙️ المدير العام</span>
+<nav><a href="{{ url_for('super.tenants') }}">المنظمات</a></nav>
+<div class="who"><span>{{ superadmin.username }}</span>
+<form method="post" action="{{ url_for('super.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">خروج</button></form></div>
+</header>
+<main>{% include '_flash.html' %}{% block content %}{% endblock %}</main>
+</body></html>
