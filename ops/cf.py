@@ -84,7 +84,7 @@ def main():
     zone_name = os.environ.get('CF_ZONE', 'iajaward.org')
     from urllib.parse import urlparse
     base_host = urlparse(os.environ.get('BASE_URL', '')).hostname or ''
-    hosts = [h.strip() for h in os.environ.get('CF_HOSTS', base_host if base_host.endswith('.' + zone_name) and base_host != 'www.' + zone_name else '6.' + zone_name).split(',') if h.strip()]
+    hosts = [h.strip() for h in os.environ.get('CF_HOSTS', base_host if base_host.endswith('.' + zone_name) and base_host != 'www.' + zone_name else '8.' + zone_name).split(',') if h.strip()]
     main_name = os.environ.get('CF_MAIN_TUNNEL', 'iajaward')
     sb_name = os.environ.get('CF_STANDBY_TUNNEL', 'sas-standby')
     service = f"http://localhost:{os.environ.get('PORT', '8008')}"

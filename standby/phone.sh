@@ -3,6 +3,10 @@
 #  نظام غياب الطلبة (8.iajaward.org) من الهاتف (Termux) — احتياط عند انقطاع الكمبيوتر
 #  يعمل بجانب موقع الجائزة (~/iaj) دون تعارض: منفذ 8008 ونفق مستقل «sas-standby»
 #
+#  ★ التشغيل الأول على الهاتف (قبل تثبيته على الكمبيوتر):
+#   pkg install -y git && git clone https://github.com/AcsVe/SAS ~/sas && bash ~/sas/standby/phone.sh first
+#   bash ~/sas/standby/phone.sh start        # تشغيل 8.iajaward.org من الهاتف (القاعدة الحالية على الهاتف)
+#
 #   bash ~/sas/standby/phone.sh setup        # مرة واحدة: المتطلبات
 #   bash ~/sas/standby/phone.sh configure    # مرة واحدة: الرموز (من إعدادات IAJ تلقائياً) + الأزرار SAS
 #   bash ~/sas/standby/phone.sh update-code  # آخر نسخة من GitHub (أو من Drive)
@@ -57,22 +61,57 @@ ensure_env() {
   chmod 600 "$SITE/config.env" 2>/dev/null || true
 }
 
+# إعدادات بريد Microsoft Graph: من أي نظام آخر على هذا الهاتف، وإلا تُسأل (Enter للتخطي)
+copy_mail() {
+  for k in MS_TENANT_ID MS_CLIENT_ID MS_CLIENT_SECRET MS_SENDER_EMAIL; do
+    grep -q "^$k=." "$SITE/config.env" && continue
+    v=$(grep -h "^$k=." "$HOME"/*/config.env "$HOME"/*/.env 2>/dev/null | grep -v "^$k=$" | head -1 | cut -d= -f2-)
+    if [ -z "$v" ]; then
+      if [ "$k" = "MS_CLIENT_SECRET" ]; then
+        read -r -s -p "  $k ($(T "Enter للتخطي" "Enter to skip")): " v; echo
+      else
+        read -r -p "  $k ($(T "Enter للتخطي" "Enter to skip")): " v
+      fi
+    fi
+    [ -n "$v" ] && echo "$k=$v" >> "$SITE/config.env"
+  done
+  grep -q '^MS_CLIENT_SECRET=.' "$SITE/config.env" \
+    || say "$(T "⚠ بلا إعدادات بريد: لن تصل روابط كلمات المرور ولا إشعارات أولياء الأمور حتى تُضاف" "⚠ No mail settings: password links and guardian notices will not be sent until added")"
+}
+
 case "$1" in
   setup)
     say "$(T "تثبيت المتطلبات" "Installing requirements")"
-    pkg install -y python rclone cloudflared unzip >/dev/null
+    pkg install -y python rclone cloudflared unzip git >/dev/null
     pkg install -y python-cryptography >/dev/null 2>&1 || true
     pip install -r "$SITE/requirements.txt" tzdata
     say "$(T "تم. الخطوة التالية: bash ~/sas/standby/phone.sh configure" "Done. Next: bash ~/sas/standby/phone.sh configure")"
     ;;
 
+  first)
+    need_code
+    bash "$0" setup
+    ensure_env
+    say "$(T "إعدادات البريد (Microsoft Graph)" "Mail settings (Microsoft Graph)")"
+    copy_mail
+    grep -q '^CF_API_TOKEN=.' "$SITE/config.env" || {
+      read -r -s -p "$(T "  الصق رمز Cloudflare API ثم Enter: " "  Paste the Cloudflare API token, then Enter: ")" TK; echo
+      [ -n "$TK" ] && echo "CF_API_TOKEN=$TK" >> "$SITE/config.env"; }
+    say "$(T "إنشاء نفق الهاتف sas-standby وسجل 8.iajaward.org في Cloudflare" "Creating the phone tunnel sas-standby and the 8.iajaward.org record in Cloudflare")"
+    (cd "$SITE" && python ops/cf.py setup) || die "$(T "تعذّر إعداد Cloudflare" "Cloudflare setup failed")"
+    bash "$0" configure
+    say "$(T "إنشاء القاعدة والمدير العام وأول منظمة" "Creating the database, the super admin and the first organization")"
+    (cd "$SITE" && python ops/first_org.py) || die "$(T "تعذّر إنشاء القاعدة" "Database setup failed")"
+    say "$(T "✅ جاهز. للتشغيل: bash ~/sas/standby/phone.sh start  (أو زر «SAS 0 - تشغيل غياب الطلبة على الهاتف»)" "✅ Ready. To run: bash ~/sas/standby/phone.sh start  (or the button SAS 0)")"
+    ;;
+
   update-code)
-    if [ -s "$HOME/.iaj_github_token" ] && [ -f "$SITE/standby/gh_update.py" ]; then
+    if [ -f "$SITE/standby/gh_update.py" ]; then
       say "$(T "تنزيل الكود من GitHub" "Downloading code from GitHub")"
       if python "$SITE/standby/gh_update.py"; then
         say "$(T "تم تحديث الكود" "Code updated")"; exit 0
       fi
-      say "$(T "تعذّر GitHub (تأكد أن رمز GitHub يشمل مستودع SAS) — أحاول من Drive" "GitHub failed (make sure the GitHub token includes the SAS repo) - trying Drive")"
+      say "$(T "تعذّر GitHub — أحاول من Drive" "GitHub failed - trying Drive")"
     fi
     mkdir -p "$LOCAL_BK/code"
     rclone copy "$SAS_REMOTE/code" "$LOCAL_BK/code" --progress
@@ -113,6 +152,7 @@ case "$1" in
       || { rm -f "$TOKEN_FILE.tmp"; die "$(T "تعذّر — شغّل أولاً على الكمبيوتر 1_setup.bat (ينشئ النفق)" "Failed - run 1_setup.bat on the PC first (it creates the tunnel)")"; }
     mkdir -p "$HOME/.shortcuts"
     mk() { printf '#!/data/data/com.termux/files/usr/bin/bash\n%s\necho; read -r -p "Enter ↵" _\n' "$2" > "$HOME/.shortcuts/$1"; chmod +x "$HOME/.shortcuts/$1"; }
+    mk "SAS 0 - تشغيل غياب الطلبة على الهاتف"  "bash ~/sas/standby/phone.sh start"
     mk "SAS 1 - تشغيل طوارئ غياب الطلبة"  "bash ~/sas/standby/phone.sh takeover"
     mk "SAS 1 - إنهاء طوارئ غياب الطلبة"  "bash ~/sas/standby/phone.sh stop"
     mk "SAS 2 - إرجاع غياب الطلبة للكمبيوتر" "bash ~/sas/standby/phone.sh server"
@@ -132,11 +172,12 @@ case "$1" in
     say "$(T "تم. على الكمبيوتر: back_to_server.bat" "Done. On the PC: back_to_server.bat")"
     ;;
 
-  takeover)
+  takeover|start)
+    MODE="$1"
     guard; need_code; ensure_env
     grep -q '^CF_API_TOKEN=.' "$SITE/config.env" || die "$(T "شغّل configure أولاً" "Run configure first")"
     [ -s "$TOKEN_FILE" ] || die "$(T "شغّل configure أولاً (رمز النفق)" "Run configure first (tunnel token)")"
-    if (cd "$SITE" && python ops/cf.py server-up 2>/dev/null); then
+    if [ "$MODE" = takeover ] && (cd "$SITE" && python ops/cf.py server-up 2>/dev/null); then
       echo
       echo "$(T "  ✋ الكمبيوتر يعمل ونظام غياب الطلبة سليم — لا حاجة للطوارئ." "  ✋ The PC is up and the sas system is fine - no need for emergency mode.")"
       read -r -p "$(T "  للتشغيل رغم ذلك اكتب FORCE، أو Enter للإلغاء: " "  To run anyway type FORCE, or Enter to cancel: ")" ANS
@@ -144,7 +185,7 @@ case "$1" in
     fi
     pkill -f "$SITE/serve.py" 2>/dev/null || true
     kill_my_tunnel; sleep 1
-    bash "$0" restore
+    [ "$MODE" = takeover ] && bash "$0" restore
     cd "$SITE"
     termux-wake-lock 2>/dev/null || true
     say "$(T "تشغيل نظام غياب الطلبة" "Starting the sas system")"
@@ -170,7 +211,11 @@ case "$1" in
       kill $WEB $CF 2>/dev/null
       say "$(T "إيقاف نظام غياب الطلبة على الهاتف" "Stopping the sas system on the phone")"
       FP1=$(python ops/fingerprint.py 2>/dev/null | tail -1)
-      if [ "$FP0" = "$FP1" ]; then
+      if [ "$MODE" = start ]; then
+        # الهاتف هو الخادم الوحيد حالياً: نحفظ نسخة في Drive ولا نحوّل الموقع
+        [ "$FP0" = "$FP1" ] || IAJ_NOGUARD=1 bash "$0" backup || true
+        say "$(T "توقف 8.iajaward.org — للتشغيل من جديد: SAS 0" "8.iajaward.org is stopped - to run again: SAS 0")"
+      elif [ "$FP0" = "$FP1" ]; then
         if python ops/cf.py server; then
           python -c "import sys;sys.path.insert(0,'ops');from common import stamp;print('server',stamp())" > "$LOCAL_BK/db/ACTIVE_SITE.txt"
           rclone copyto "$LOCAL_BK/db/ACTIVE_SITE.txt" "$SAS_REMOTE/db/ACTIVE_SITE.txt" 2>/dev/null || true
@@ -192,16 +237,16 @@ case "$1" in
     else
       die "$(T "لم يتم التحويل" "Switch failed")"
     fi
-    say "$(T "✅ الهاتف يشغّل 8.iajaward.org — لا تغلق النافذة. للإنهاء: زر «SAS 1 - إنهاء» أو Ctrl+C" "✅ The phone serves 8.iajaward.org - keep this window. To finish: SAS 1 - Stop, or Ctrl+C")"
+    say "$(T "✅ الهاتف يشغّل https://8.iajaward.org — لا تغلق النافذة. للإنهاء: زر «SAS 1 - إنهاء» أو Ctrl+C" "✅ The phone serves https://8.iajaward.org - keep this window. To finish: SAS 1 - Stop, or Ctrl+C")"
     while kill -0 $WEB 2>/dev/null && kill -0 $CF 2>/dev/null; do sleep 5; done
     say "$(T "توقف النظام أو النفق على الهاتف" "The system or tunnel stopped on the phone")"
     exit 0
     ;;
 
   stop)
-    PID=$(pgrep -f "sas/standby/phone.sh takeover" | grep -v "^$$\$" | head -1)
+    PID=$(pgrep -f "sas/standby/phone.sh (takeover|start)" | grep -v "^$$\$" | head -1)
     if [ -z "$PID" ]; then
-      say "$(T "طوارئ غياب الطلبة ليست قيد التشغيل" "SAS emergency mode is not running")"
+      say "$(T "نظام غياب الطلبة لا يعمل على الهاتف" "SAS is not running on the phone")"
     else
       say "$(T "إنهاء الطوارئ… (قد يستغرق دقيقة)" "Stopping emergency mode... (may take a minute)")"
       kill -INT "$PID" 2>/dev/null || true
@@ -222,6 +267,6 @@ case "$1" in
     ;;
 
   *)
-    sed -n '2,18p' "$0"
+    sed -n '2,23p' "$0"
     ;;
 esac

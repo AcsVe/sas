@@ -1,6 +1,6 @@
 """تحديث كود نظام غياب الطلبة على الهاتف من GitHub مباشرة (يستخدم نفس رمز موقع الجائزة ~/.iaj_github_token).
 
-• يجب أن يشمل الرمز (Fine-grained, Contents: Read-only) مستودع AcsVe/SAS أيضاً.
+• المستودع عام، فالرمز اختياري (يرفع حد الطلبات فقط).
 • لا يلمس: .env ومجلد data (القاعدة والمرفقات) وlogs.
 """
 import io
@@ -18,12 +18,10 @@ EN = os.environ.get('IAJ_LANG') == 'en'
 
 def main():
     tok_file = os.path.expanduser('~/.iaj_github_token')
-    if not os.path.isfile(tok_file):
-        print('NO_TOKEN')
-        sys.exit(3)
-    token = open(tok_file).read().strip()
-    req = urllib.request.Request(f'https://api.github.com/repos/{REPO}/zipball/{BRANCH}',
-                                 headers={'Authorization': f'Bearer {token}', 'User-Agent': 'sas-phone'})
+    headers = {'User-Agent': 'sas-phone'}
+    if os.path.isfile(tok_file):          # the repository is public; a token only raises the rate limit
+        headers['Authorization'] = f'Bearer {open(tok_file).read().strip()}'
+    req = urllib.request.Request(f'https://api.github.com/repos/{REPO}/zipball/{BRANCH}', headers=headers)
     try:
         data = urllib.request.urlopen(req, timeout=120).read()
     except Exception as e:
