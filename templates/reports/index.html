@@ -1,61 +1,61 @@
 {% extends 'base.html' %}
-{% block title %}تقرير الغياب{% endblock %}
+{% block title %}{{ _('تقرير الغياب') }}{% endblock %}
 {% block content %}
 {% macro R() %}{{ url_for('attendance.records', date_from=d_from.isoformat(), date_to=d_to.isoformat(), **kwargs) }}{% endmacro %}
 <div class="toolbar">
-  <h1>تقرير الغياب <small class="muted mono">{{ d_from }} — {{ d_to }}</small></h1>
+  <h1>{{ _('تقرير الغياب') }} <small class="muted mono">{{ d_from }} — {{ d_to }}</small></h1>
   <div class="actions-row no-print">
-    <a class="btn secondary small" href="{{ url_for('reports.index', date_from=d_from.isoformat(), date_to=d_to.isoformat(), stage=stage_id, export='xlsx') }}">⬇ تصدير Excel</a>
-    <a class="btn secondary small" href="{{ url_for('reports.index', date_from=d_from.isoformat(), date_to=d_to.isoformat(), stage=stage_id, print=1) }}">🖨 نسخة للطباعة</a>
-    <a class="btn secondary small" href="{{ url_for('reports.compare') }}">مقارنة فترتين</a>
+    <a class="btn secondary small" href="{{ url_for('reports.index', date_from=d_from.isoformat(), date_to=d_to.isoformat(), stage=stage_id, export='xlsx') }}">⬇ {{ _('تصدير Excel') }}</a>
+    <a class="btn secondary small" href="{{ url_for('reports.index', date_from=d_from.isoformat(), date_to=d_to.isoformat(), stage=stage_id, print=1) }}">🖨 {{ _('نسخة للطباعة') }}</a>
+    <a class="btn secondary small" href="{{ url_for('reports.compare') }}">{{ _('مقارنة فترتين') }}</a>
   </div>
 </div>
-{% if printing %}<p class="print-hint no-print"><button class="btn small" type="button" data-print>طباعة</button></p>{% endif %}
+{% if printing %}<p class="print-hint no-print"><button class="btn small" type="button" data-print>{{ _('طباعة') }}</button></p>{% endif %}
 <form method="get" class="card no-print">
   <div class="row">
-    <div><label>من تاريخ</label><input type="date" name="date_from" value="{{ d_from.isoformat() }}"></div>
-    <div><label>إلى تاريخ</label><input type="date" name="date_to" value="{{ d_to.isoformat() }}"></div>
-    <div><label>المرحلة</label><select name="stage"><option value="">الكل</option>
-      {% for s in all_stages %}<option value="{{ s.id }}" {% if stage_id == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></div>
+    <div><label>{{ _('من تاريخ') }}</label><input type="date" name="date_from" value="{{ d_from.isoformat() }}"></div>
+    <div><label>{{ _('إلى تاريخ') }}</label><input type="date" name="date_to" value="{{ d_to.isoformat() }}"></div>
+    <div><label>{{ _('المرحلة') }}</label><select name="stage"><option value="">{{ _('الكل') }}</option>
+      {% for s in all_stages %}<option value="{{ s.id }}" {% if stage_id == s.id %}selected{% endif %}>{{ label(s) }}</option>{% endfor %}</select></div>
   </div>
-  <button class="btn small" type="submit">عرض</button>
+  <button class="btn small" type="submit">{{ _('عرض') }}</button>
 </form>
 
 <div class="kpis">
-  <a class="kpi" href="{{ url_for('students.index') }}"><div class="n">{{ total.students }}</div><div class="l">طلبة فعّالون</div></a>
-  <a class="kpi {{ 'bad' if total.absent else 'zero' }}" href="{{ R(kind='absent') }}"><div class="n">{{ total.absent }}</div><div class="l">أيام غياب</div><small>منها بعذر {{ total.excused }}</small></a>
-  <a class="kpi {{ 'warn' if total.rate else 'zero' }}" href="{{ R(kind='absent') }}"><div class="n">{{ total.rate }}%</div><div class="l">نسبة الغياب</div><small>من {{ total.possible }} يوم-طالب</small></a>
-  <a class="kpi {{ 'warn' if total.late else 'zero' }}" href="{{ R(kind='late') }}"><div class="n">{{ total.late }}</div><div class="l">حالات تأخر</div></a>
-  <a class="kpi {{ 'warn' if total.early else 'zero' }}" href="{{ R(kind='early_leave') }}"><div class="n">{{ total.early }}</div><div class="l">مغادرة مبكرة</div></a>
+  <a class="kpi" href="{{ url_for('students.index') }}"><div class="n">{{ total.students }}</div><div class="l">{{ _('طلبة فعّالون') }}</div></a>
+  <a class="kpi {{ 'bad' if total.absent else 'zero' }}" href="{{ R(kind='absent') }}"><div class="n">{{ total.absent }}</div><div class="l">{{ _('أيام غياب') }}</div><small>{{ _('منها بعذر') }} {{ total.excused }}</small></a>
+  <a class="kpi {{ 'warn' if total.rate else 'zero' }}" href="{{ R(kind='absent') }}"><div class="n">{{ total.rate }}%</div><div class="l">{{ _('نسبة الغياب') }}</div><small>{{ _('من') }} {{ total.possible }} {{ _('يوم-طالب') }}</small></a>
+  <a class="kpi {{ 'warn' if total.late else 'zero' }}" href="{{ R(kind='late') }}"><div class="n">{{ total.late }}</div><div class="l">{{ _('حالات تأخر') }}</div></a>
+  <a class="kpi {{ 'warn' if total.early else 'zero' }}" href="{{ R(kind='early_leave') }}"><div class="n">{{ total.early }}</div><div class="l">{{ _('مغادرة مبكرة') }}</div></a>
 </div>
 
-<h2>حسب المرحلة</h2>
+<h2>{{ _('حسب المرحلة') }}</h2>
 <div class="card table-wrap"><table data-table id="t-rep-stage">
-<thead><tr><th data-filter="text">المرحلة</th><th data-sort="num">الطلبة</th><th data-sort="num">أيام الغياب</th><th data-sort="num">التأخر</th><th data-sort="num">المغادرة</th><th data-sort="num">النسبة %</th></tr></thead>
+<thead><tr><th data-filter="text">{{ _('المرحلة') }}</th><th data-sort="num">{{ _('الطلبة') }}</th><th data-sort="num">{{ _('أيام الغياب') }}</th><th data-sort="num">{{ _('التأخر') }}</th><th data-sort="num">{{ _('المغادرة') }}</th><th data-sort="num">{{ _('النسبة %') }}</th></tr></thead>
 <tbody>{% for s in stages %}
-<tr><td>{{ s.stage.name }}</td><td>{{ s.students }}</td><td><a href="{{ R(stage=s.stage.id, kind='absent') }}">{{ s.absent }}</a></td>
+<tr><td>{{ label(s.stage) }}</td><td>{{ s.students }}</td><td><a href="{{ R(stage=s.stage.id, kind='absent') }}">{{ s.absent }}</a></td>
 <td><a href="{{ R(stage=s.stage.id, kind='late') }}">{{ s.late }}</a></td><td><a href="{{ R(stage=s.stage.id, kind='early_leave') }}">{{ s.early }}</a></td>
 <td>{{ s.rate }}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد بيانات</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ _('لا توجد بيانات') }}</td></tr>{% endfor %}</tbody></table></div>
 
-<h2>حسب الشعبة</h2>
+<h2>{{ _('حسب الشعبة') }}</h2>
 <div class="card table-wrap"><table data-table id="t-rep-sec">
-<thead><tr><th data-filter="select">المرحلة</th><th data-filter="select">الصف</th><th data-filter="text">الشعبة</th><th data-sort="num">الطلبة</th><th data-sort="num">أيام الدوام</th>
-<th data-sort="num">أيام الغياب</th><th data-sort="num">بعذر</th><th data-sort="num">التأخر</th><th data-sort="num">المغادرة</th><th data-sort="num">النسبة %</th></tr></thead>
+<thead><tr><th data-filter="select">{{ _('المرحلة') }}</th><th data-filter="select">{{ _('الصف') }}</th><th data-filter="text">{{ _('الشعبة') }}</th><th data-sort="num">{{ _('الطلبة') }}</th><th data-sort="num">{{ _('أيام الدوام') }}</th>
+<th data-sort="num">{{ _('أيام الغياب') }}</th><th data-sort="num">{{ _('بعذر') }}</th><th data-sort="num">{{ _('التأخر') }}</th><th data-sort="num">{{ _('المغادرة') }}</th><th data-sort="num">{{ _('النسبة %') }}</th></tr></thead>
 <tbody>{% for r in rows %}{% set s = r.section %}
-<tr><td>{{ s.grade.stage.name }}</td><td>{{ s.grade.name }}</td><td><a href="{{ url_for('students.index', section=s.id) }}">{{ s.name }}</a></td>
+<tr><td>{{ label(s.grade.stage) }}</td><td>{{ label(s.grade) }}</td><td><a href="{{ url_for('students.index', section=s.id) }}">{{ s.name }}</a></td>
 <td>{{ r.students }}</td><td>{{ r.days }}</td>
 <td><a href="{{ R(section=s.id, kind='absent') }}">{{ r.absent }}</a></td><td>{{ r.excused }}</td>
 <td><a href="{{ R(section=s.id, kind='late') }}">{{ r.late }}</a></td><td><a href="{{ R(section=s.id, kind='early_leave') }}">{{ r.early }}</a></td>
 <td>{{ r.rate }}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="10" class="muted">لا توجد شعب ضمن نطاقك</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<tr class="empty-row"><td colspan="10" class="muted">{{ _('لا توجد شعب ضمن نطاقك') }}</td></tr>{% endfor %}</tbody></table></div>
 
-<h2>الأكثر غيابًا</h2>
+<h2>{{ _('الأكثر غيابًا') }}</h2>
 <div class="card table-wrap"><table data-table id="t-rep-top">
-<thead><tr><th data-filter="text">الطالب</th><th data-filter="select">الشعبة</th><th data-sort="num">أيام الغياب</th><th data-filter="select">بريد ولي الأمر</th></tr></thead>
+<thead><tr><th data-filter="text">{{ _('الطالب') }}</th><th data-filter="select">{{ _('الشعبة') }}</th><th data-sort="num">{{ _('أيام الغياب') }}</th><th data-filter="select">{{ _('بريد ولي الأمر') }}</th></tr></thead>
 <tbody>{% for st, n in top %}
-<tr><td><a href="{{ url_for('students.profile', student_id=st.id) }}">{{ st.full_name }}</a></td><td>{{ st.section.grade.stage.name }} — {{ st.section.full_name }}</td>
-<td><a href="{{ R(student=st.id) }}">{{ n }}</a></td><td>{{ 'له بريد' if st.guardian_email else 'بلا بريد' }}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="4" class="muted">لا يوجد غياب في هذه الفترة</td></tr>{% endfor %}</tbody></table></div>
+<tr><td><a href="{{ url_for('students.profile', student_id=st.id) }}">{{ st.full_name }}</a></td><td>{{ label(st.section.grade.stage) }} — {{ st.section.full_name }}</td>
+<td><a href="{{ R(student=st.id) }}">{{ n }}</a></td><td>{{ _('له بريد') if st.guardian_email else _('بلا بريد') }}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="4" class="muted">{{ _('لا يوجد غياب في هذه الفترة') }}</td></tr>{% endfor %}</tbody></table></div>
 {% if printing and current_tenant.form_footer %}<p class="muted" style="margin-top:18px;text-align:center">{{ current_tenant.form_footer }}</p>{% endif %}
 {% endblock %}

@@ -1,27 +1,27 @@
 {% extends 'base.html' %}
-{% block title %}سجل غياب{% endblock %}
+{% block title %}{{ _('سجل غياب') }}{% endblock %}
 {% block content %}
-<h1>{{ 'تعديل سجل' if r.id else 'تسجيل جديد' }}: {{ s.full_name }} <small class="muted">({{ s.section.full_name }})</small></h1>
-{% for err in errors %}<div class="alert danger">{{ err }}</div>{% endfor %}
+<h1>{{ _('تعديل سجل') if r.id else _('تسجيل جديد') }}: {{ s.full_name }} <small class="muted">({{ s.section.full_name }})</small></h1>
+{% for err in errors %}<div class="alert danger">{{ _(err) }}</div>{% endfor %}
 <div class="card"><form method="post" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="student" value="{{ s.id }}">
   <input type="hidden" name="next" value="{{ next }}">
   <div class="row">
-    <div><label>التاريخ *</label><input type="date" name="record_date" value="{{ r.record_date.isoformat() if r.record_date else '' }}" required></div>
-    <div><label>النوع *</label><select name="kind">{% for k, l in kinds %}<option value="{{ k }}" {% if r.kind == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
-    <div><label>المدة</label><select name="all_day"><option value="1" {% if r.all_day %}selected{% endif %}>طوال اليوم</option><option value="0" {% if not r.all_day %}selected{% endif %}>وقت محدد</option></select></div>
-    <div data-show-when="all_day=0"><label>من الساعة</label><input type="time" name="time_from" value="{{ r.time_from or '' }}"></div>
-    <div data-show-when="all_day=0"><label>إلى الساعة</label><input type="time" name="time_to" value="{{ r.time_to or '' }}"></div>
+    <div><label>{{ _('التاريخ *') }}</label><input type="date" name="record_date" value="{{ r.record_date.isoformat() if r.record_date else '' }}" required></div>
+    <div><label>{{ _('النوع *') }}</label><select name="kind">{% for k, l in kinds %}<option value="{{ k }}" {% if r.kind == k %}selected{% endif %}>{{ _(l) }}</option>{% endfor %}</select></div>
+    <div><label>{{ _('المدة') }}</label><select name="all_day"><option value="1" {% if r.all_day %}selected{% endif %}>{{ _('طوال اليوم') }}</option><option value="0" {% if not r.all_day %}selected{% endif %}>{{ _('وقت محدد') }}</option></select></div>
+    <div data-show-when="all_day=0"><label>{{ _('من الساعة') }}</label><input type="time" name="time_from" value="{{ r.time_from or '' }}"></div>
+    <div data-show-when="all_day=0"><label>{{ _('إلى الساعة') }}</label><input type="time" name="time_to" value="{{ r.time_to or '' }}"></div>
   </div>
-  <div><label>ملاحظات</label><textarea name="notes" rows="2">{{ r.notes or '' }}</textarea></div>
+  <div><label>{{ _('ملاحظات') }}</label><textarea name="notes" rows="2">{{ r.notes or '' }}</textarea></div>
   <div class="row" style="margin-top:12px">
-    <div><label>مرفق (تقرير طبي أو عذر — PDF أو صورة أو Word)</label><input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.doc,.docx"></div>
-    {% if r.attachment %}<div><label>المرفق الحالي</label><a href="{{ url_for('attendance.attachment', att_id=r.attachment.id) }}">📎 {{ r.attachment.original_name }}</a>
-      <div class="checks"><label><input type="checkbox" name="remove_attachment" value="1"> إزالة المرفق</label></div></div>{% endif %}
+    <div><label>{{ _('مرفق (تقرير طبي أو عذر — PDF أو صورة أو Word)') }}</label><input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.doc,.docx"></div>
+    {% if r.attachment %}<div><label>{{ _('المرفق الحالي') }}</label><a href="{{ url_for('attendance.attachment', att_id=r.attachment.id) }}">📎 {{ r.attachment.original_name }}</a>
+      <div class="checks"><label><input type="checkbox" name="remove_attachment" value="1"> {{ _('إزالة المرفق') }}</label></div></div>{% endif %}
   </div>
-  {% if r.id %}<p class="hint">الحالة: {{ r.status_label }}{% if r.approver %} — {{ r.approver.full_name }}{% endif %}</p>{% endif %}
-  <button class="btn" type="submit">حفظ</button>
-  <a class="btn secondary" href="{{ next or url_for('students.profile', student_id=s.id) }}">رجوع</a>
+  {% if r.id %}<p class="hint">{{ _('الحالة:') }} {{ _(r.status_label) }}{% if r.approver %} — {{ r.approver.full_name }}{% endif %}</p>{% endif %}
+  <button class="btn" type="submit">{{ _('حفظ') }}</button>
+  <a class="btn secondary" href="{{ next or url_for('students.profile', student_id=s.id) }}">{{ _('رجوع') }}</a>
 </form></div>
 {% endblock %}

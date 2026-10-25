@@ -1,26 +1,26 @@
 {% extends 'base.html' %}
-{% block title %}مقارنة فترتين{% endblock %}
+{% block title %}{{ _('مقارنة فترتين') }}{% endblock %}
 {% block content %}
-<div class="toolbar"><h1>مقارنة نسبة الغياب بين فترتين</h1>
-  <a class="btn secondary small no-print" href="{{ url_for('reports.index') }}">التقرير</a></div>
+<div class="toolbar"><h1>{{ _('مقارنة نسبة الغياب بين فترتين') }}</h1>
+  <a class="btn secondary small no-print" href="{{ url_for('reports.index') }}">{{ _('التقرير') }}</a></div>
 <form method="get" class="card no-print">
   <div class="row">
-    <div><label>الفترة الأولى: من</label><input type="date" name="a_from" value="{{ a_from.isoformat() }}"></div>
-    <div><label>إلى</label><input type="date" name="a_to" value="{{ a_to.isoformat() }}"></div>
-    <div><label>الفترة الثانية: من</label><input type="date" name="b_from" value="{{ b_from.isoformat() }}"></div>
-    <div><label>إلى</label><input type="date" name="b_to" value="{{ b_to.isoformat() }}"></div>
+    <div><label>{{ _('الفترة الأولى: من') }}</label><input type="date" name="a_from" value="{{ a_from.isoformat() }}"></div>
+    <div><label>{{ _('إلى') }}</label><input type="date" name="a_to" value="{{ a_to.isoformat() }}"></div>
+    <div><label>{{ _('الفترة الثانية: من') }}</label><input type="date" name="b_from" value="{{ b_from.isoformat() }}"></div>
+    <div><label>{{ _('إلى') }}</label><input type="date" name="b_to" value="{{ b_to.isoformat() }}"></div>
   </div>
-  <button class="btn small" type="submit">مقارنة</button>
+  <button class="btn small" type="submit">{{ _('مقارنة') }}</button>
 </form>
 <div class="kpis">
-  <a class="kpi" href="{{ url_for('reports.index', date_from=a_from.isoformat(), date_to=a_to.isoformat()) }}"><div class="n">{{ ta.rate }}%</div><div class="l">الفترة الأولى</div><small class="mono">{{ a_from }} — {{ a_to }}</small></a>
-  <a class="kpi" href="{{ url_for('reports.index', date_from=b_from.isoformat(), date_to=b_to.isoformat()) }}"><div class="n">{{ tb.rate }}%</div><div class="l">الفترة الثانية</div><small class="mono">{{ b_from }} — {{ b_to }}</small></a>
-  <a class="kpi {{ 'bad' if diff > 0 else ('ok' if diff < 0 else 'zero') }}" href="#t-cmp"><div class="n">{{ '+' if diff > 0 else '' }}{{ diff }}</div><div class="l">الفرق (نقطة مئوية)</div><small>{{ 'ارتفاع في الغياب' if diff > 0 else ('انخفاض في الغياب' if diff < 0 else 'دون تغيير') }}</small></a>
+  <a class="kpi" href="{{ url_for('reports.index', date_from=a_from.isoformat(), date_to=a_to.isoformat()) }}"><div class="n">{{ ta.rate }}%</div><div class="l">{{ _('الفترة الأولى') }}</div><small class="mono">{{ a_from }} — {{ a_to }}</small></a>
+  <a class="kpi" href="{{ url_for('reports.index', date_from=b_from.isoformat(), date_to=b_to.isoformat()) }}"><div class="n">{{ tb.rate }}%</div><div class="l">{{ _('الفترة الثانية') }}</div><small class="mono">{{ b_from }} — {{ b_to }}</small></a>
+  <a class="kpi {{ 'bad' if diff > 0 else ('ok' if diff < 0 else 'zero') }}" href="#t-cmp"><div class="n">{{ '+' if diff > 0 else '' }}{{ diff }}</div><div class="l">{{ _('الفرق (نقطة مئوية)') }}</div><small>{{ _('ارتفاع في الغياب') if diff > 0 else (_('انخفاض في الغياب') if diff < 0 else _('دون تغيير')) }}</small></a>
 </div>
 <div class="card table-wrap"><table data-table id="t-cmp">
-<thead><tr><th data-filter="text">المرحلة</th><th data-sort="num">أيام الغياب (1)</th><th data-sort="num">النسبة (1) %</th><th data-sort="num">أيام الغياب (2)</th><th data-sort="num">النسبة (2) %</th><th data-sort="num">الفرق</th></tr></thead>
+<thead><tr><th data-filter="text">{{ _('المرحلة') }}</th><th data-sort="num">{{ _('أيام الغياب (1)') }}</th><th data-sort="num">{{ _('النسبة (1) %') }}</th><th data-sort="num">{{ _('أيام الغياب (2)') }}</th><th data-sort="num">{{ _('النسبة (2) %') }}</th><th data-sort="num">{{ _('الفرق') }}</th></tr></thead>
 <tbody>{% for r in rows %}
-<tr><td>{{ r.stage.name }}</td><td>{{ r.a.absent }}</td><td>{{ r.a.rate }}</td><td>{{ r.b.absent }}</td><td>{{ r.b.rate }}</td>
+<tr><td>{{ label(r.stage) }}</td><td>{{ r.a.absent }}</td><td>{{ r.a.rate }}</td><td>{{ r.b.absent }}</td><td>{{ r.b.rate }}</td>
 <td><span class="badge {{ 'bad' if r.diff > 0 else ('ok' if r.diff < 0 else '') }}">{{ '+' if r.diff > 0 else '' }}{{ r.diff }}</span></td></tr>
-{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد بيانات</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ _('لا توجد بيانات') }}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}

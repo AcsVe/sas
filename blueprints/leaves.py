@@ -11,6 +11,7 @@ from services import scope
 from utils.audit import audit
 from utils.export import xlsx_response
 from utils.school import today, now_hhmm, form_ids, int_or_none, parse_day, clean_time
+from utils.i18n import _
 
 leaves_bp = Blueprint('leaves', __name__)
 
@@ -56,11 +57,11 @@ def index():
         rows = [r for r in rows if r.is_out]
     if request.args.get('export') == 'xlsx':
         return xlsx_response('class_leaves.xlsx',
-                             ['التاريخ', 'الطالب', 'الشعبة', 'النوع', 'الخروج', 'العودة', 'الحالة', 'ملاحظات', 'سجّله'],
+                             [_('التاريخ'), _('الطالب'), _('الشعبة'), _('النوع'), _('الخروج'), _('العودة'), _('الحالة'), _('ملاحظات'), _('سجّله')],
                              [[r.leave_date.isoformat(), r.student.full_name, r.student.section.full_name,
-                               r.leave_type.name, r.leave_time, r.return_time or ('خارج الصف' if r.is_out else ''),
+                               r.leave_type.name, r.leave_time, r.return_time or (_('خارج الصف') if r.is_out else ''),
                                r.status_label, r.notes, r.creator.full_name if r.creator else ''] for r in rows],
-                             'الخروج من الحصة')
+                             _('الخروج من الحصة'))
     students = Student.query.filter_by(section_id=section.id, is_active=True).order_by(Student.full_name).all() \
         if section else []
     return render_template('leaves/index.html', rows=rows, day=day, d_to=d_to, sections=sections,
@@ -81,7 +82,7 @@ def create():
     day = parse_day(request.form.get('leave_date'), today())
     back = url_for('leaves.index', section=section_id, date=day.isoformat())
     if lt is None or not picked:
-        flash('اختر نوع الخروج وطالبًا واحدًا على الأقل', 'danger')
+        flash(_('اختر نوع الخروج وطالبًا واحدًا على الأقل'), 'danger')
         return redirect(back)
     approve = has_perm('class_leave.approve')
     for st in picked:
@@ -93,7 +94,7 @@ def create():
         db.session.add(lv)
     audit('class_leave.created', 'section', section_id, count=len(picked), type=lt.name)
     db.session.commit()
-    flash(f'سُجّل خروج {len(picked)}: {lt.name}', 'success')
+    flash(_('سُجّل خروج {v}: {name}', v=len(picked), name=lt.name), 'success')
     return redirect(back)
 
 
@@ -120,7 +121,7 @@ def bulk():
     elif action == 'delete':
         for lv in picked:
             if lv.status == 'approved' and not has_perm('class_leave.approve'):
-                skipped.append(f'{lv.student.full_name} (معتمد)')
+                skipped.append(_('{full_name} (معتمد)', full_name=lv.student.full_name))
                 continue
             audit('class_leave.deleted', 'class_leave', lv.id, student=lv.student_id)
             db.session.delete(lv)
@@ -130,8 +131,8 @@ def bulk():
     if action != 'delete':
         audit(f'class_leave.bulk_{action}', count=done)
     db.session.commit()
-    verb = {'return': 'سُجّلت العودة', 'approve': 'اعتُمد', 'reject': 'رُفض', 'delete': 'حُذف'}[action]
-    flash(f'{verb}: {done}' + ((' — تُرك: ' + '، '.join(skipped[:10])) if skipped else ''),
+    verb = {'return': _('سُجّلت العودة'), 'approve': _('اعتُمد'), 'reject': _('رُفض'), 'delete': _('حُذف')}[action]
+    flash(f'{verb}: {done}' + ((_(' — تُرك: ') + _('، ').join(skipped[:10])) if skipped else ''),
           'success' if done else 'warning')
     return redirect(request.referrer or url_for('leaves.index'))
 
@@ -147,9 +148,9 @@ def edit(leave_id):
         back = clean_time(request.form.get('return_time'))
         day = parse_day(request.form.get('leave_date'))
         if lt is None or t is None or day is None:
-            errors.append('النوع والتاريخ ووقت الخروج مطلوبة')
+            errors.append(_('النوع والتاريخ ووقت الخروج مطلوبة'))
         elif back and back < t:
-            errors.append('وقت العودة قبل وقت الخروج')
+            errors.append(_('وقت العودة قبل وقت الخروج'))
         if not errors:
             lv.leave_type_id, lv.leave_time, lv.return_time, lv.leave_date = lt.id, t, back, day
             lv.notes = (request.form.get('notes') or '').strip()[:500] or None
@@ -157,7 +158,7 @@ def edit(leave_id):
                 lv.status = request.form['status']
             audit('class_leave.updated', 'class_leave', lv.id)
             db.session.commit()
-            flash('تم الحفظ', 'success')
+            flash(_('تم الحفظ'), 'success')
             return redirect(url_for('leaves.index', section=lv.student.section_id, date=lv.leave_date.isoformat()))
         db.session.rollback()
     return render_template('leaves/form.html', lv=lv, types=ClassLeaveType.query.order_by(

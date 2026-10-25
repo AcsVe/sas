@@ -7,6 +7,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from config import build_config, load_config_env, program_dir
 from extensions import db, csrf, migrate
 from tenancy import set_current_tenant, tenant_bypass, TenantContextError
+from utils.i18n import _
 
 
 def create_app(overrides=None):
@@ -42,6 +43,8 @@ def create_app(overrides=None):
     migrate.init_app(app, db, directory=str(program_dir() / 'migrations'))
 
     import models  # noqa: F401  (register tables)
+    from utils import i18n
+    i18n.init_app(app)
 
     from blueprints.auth import auth_bp
     from blueprints.main import main_bp
@@ -145,8 +148,19 @@ def _register_request_hooks(app):
 
     @app.context_processor
     def inject():
+        from flask import request, url_for
+        from services import ticker
+        from utils.i18n import lang
         tenant = g.get('tenant')
+        tk = None
+        if tenant is not None and not g.get('superadmin'):
+            try:
+                tk = ticker.view(tenant, lang(), 'login' if request.blueprint == 'auth' else 'app')
+            except Exception:  # noqa: BLE001 — a broken setting must never break a page
+                tk = None
         return {
+            'ticker_view': tk,
+            'ticker_logo': url_for('tenant_logo', tenant_id=tenant.id, which='primary') if tenant else '',
             'current_user': g.get('user'),
             'current_tenant': tenant,
             'superadmin': g.get('superadmin'),
@@ -171,9 +185,9 @@ def _register_pwa_routes(app):
     @app.route('/manifest.webmanifest')
     def manifest():
         tenant = g.get('tenant')
-        name = tenant.name_ar if tenant else 'غياب الطلبة والاستئذان'
+        name = tenant.name_ar if tenant else _('غياب الطلبة والاستئذان')
         data = {
-            'name': f'غياب الطلبة والاستئذان — {name}', 'short_name': 'غياب الطلبة',
+            'name': _('غياب الطلبة والاستئذان — {name}', name=name), 'short_name': _('غياب الطلبة'),
             'start_url': '/', 'scope': '/', 'display': 'standalone',
             'background_color': '#eef3f5', 'theme_color': '#1B3358',
             'lang': 'ar', 'dir': 'rtl',
@@ -204,16 +218,16 @@ def _register_error_handlers(app):
     @app.errorhandler(403)
     def forbidden(e):
         return render_template('errors/error.html', code=403,
-                               message='لا تملك صلاحية لهذه الصفحة'), 403
+                               message=_('لا تملك صلاحية لهذه الصفحة')), 403
 
     @app.errorhandler(404)
     def not_found(e):
-        return render_template('errors/error.html', code=404, message='الصفحة غير موجودة'), 404
+        return render_template('errors/error.html', code=404, message=_('الصفحة غير موجودة')), 404
 
     @app.errorhandler(TenantContextError)
     def tenant_error(e):
         app.logger.error('Tenant isolation violation: %s', e)
-        return render_template('errors/error.html', code=500, message='خطأ داخلي'), 500
+        return render_template('errors/error.html', code=500, message=_('خطأ داخلي')), 500
 
 
 if __name__ == '__main__':

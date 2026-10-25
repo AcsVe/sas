@@ -1,29 +1,29 @@
 {% extends 'super/_base.html' %}
 {% block content %}
-<h1>{{ 'منظمة جديدة' if new else 'تعديل: ' ~ t.name_ar }}</h1>
+<h1>{{ _('منظمة جديدة') if new else _('تعديل: ') ~ t.name_ar }}</h1>
 <div class="card"><form method="post" autocomplete="off">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row">
-    <div><label>الاسم بالعربية</label><input type="text" name="name_ar" value="{{ t.name_ar or '' }}" required></div>
-    <div><label>الاسم بالإنجليزية</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
-    <div><label>المعرّف (slug)</label><input type="text" name="slug" value="{{ t.slug or '' }}" dir="ltr" required></div>
-    <div><label>النطاق (اختياري)</label><input type="text" name="domain" value="{{ t.domain or '' }}" dir="ltr"></div>
-    <div><label>اللون</label><input type="text" name="accent_color" value="{{ t.accent_color or '#3D5A80' }}" dir="ltr"></div>
+    <div><label>{{ _('الاسم بالعربية') }}</label><input type="text" name="name_ar" value="{{ t.name_ar or '' }}" required></div>
+    <div><label>{{ _('الاسم بالإنجليزية') }}</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
+    <div><label>{{ _('المعرّف (slug)') }}</label><input type="text" name="slug" value="{{ t.slug or '' }}" dir="ltr" required></div>
+    <div><label>{{ _('النطاق (اختياري)') }}</label><input type="text" name="domain" value="{{ t.domain or '' }}" dir="ltr"></div>
+    <div><label>{{ _('اللون') }}</label><input type="text" name="accent_color" value="{{ t.accent_color or '#3D5A80' }}" dir="ltr"></div>
   </div>
   {% if new %}
-  <h2>مدير المنظمة الأول</h2>
+  <h2>{{ _('مدير المنظمة الأول') }}</h2>
   <div class="row">
-    <div><label>اسم المستخدم</label><input type="text" name="admin_username" dir="ltr" required></div>
-    <div><label>الاسم الكامل</label><input type="text" name="admin_full_name" required></div>
-    <div><label>البريد</label><input type="email" name="admin_email" dir="ltr"></div>
-    <div><label>كلمة مرور مؤقتة</label><input type="password" name="admin_password" autocomplete="new-password" dir="ltr" required></div>
+    <div><label>{{ _('اسم المستخدم') }}</label><input type="text" name="admin_username" dir="ltr" required></div>
+    <div><label>{{ _('الاسم الكامل') }}</label><input type="text" name="admin_full_name" required></div>
+    <div><label>{{ _('البريد') }}</label><input type="email" name="admin_email" dir="ltr"></div>
+    <div><label>{{ _('كلمة مرور مؤقتة') }}</label><input type="password" name="admin_password" autocomplete="new-password" dir="ltr" required></div>
   </div>
   {% else %}
   <div class="checks">
-    <label><input type="checkbox" name="is_active" value="1" {% if t.is_active %}checked{% endif %}> المنظمة فعّالة</label>
-    <label><input type="checkbox" name="ocr_cloud_enabled" value="1" {% if t.ocr_cloud_enabled %}checked{% endif %}> السماح بمحرك OCR السحابي</label>
+    <label><input type="checkbox" name="is_active" value="1" {% if t.is_active %}checked{% endif %}> {{ _('المنظمة فعّالة') }}</label>
+    <label><input type="checkbox" name="ocr_cloud_enabled" value="1" {% if t.ocr_cloud_enabled %}checked{% endif %}> {{ _('السماح بمحرك OCR السحابي') }}</label>
   </div><br>
   {% endif %}
-  <button class="btn" type="submit">حفظ</button>
+  <button class="btn" type="submit">{{ _('حفظ') }}</button>
 </form></div>
 {% endblock %}

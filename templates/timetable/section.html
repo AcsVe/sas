@@ -1,33 +1,33 @@
 {% extends 'base.html' %}
-{% block title %}جدول {{ sec.full_name }}{% endblock %}
+{% block title %}{{ _('جدول') }} {{ sec.full_name }}{% endblock %}
 {% block content %}
 <div class="toolbar">
-  <h1>جدول الحصص: {{ sec.grade.stage.name }} — {{ sec.full_name }}</h1>
-  <a class="btn secondary small" href="{{ url_for('structure.items', key='periods', parent=sec.grade.stage_id) }}">حصص المرحلة</a>
+  <h1>{{ _('جدول الحصص:') }} {{ label(sec.grade.stage) }} — {{ sec.full_name }}</h1>
+  <a class="btn secondary small" href="{{ url_for('structure.items', key='periods', parent=sec.grade.stage_id) }}">{{ _('حصص المرحلة') }}</a>
 </div>
 {% if not by_day.values()|sum(start=[]) %}
-<div class="alert warning">لم تُضف حصص لهذه المرحلة بعد — أضفها من «الهيكل المدرسي ← الحصص» ثم انسخها إلى بقية الأيام.</div>
+<div class="alert warning">{{ _('لم تُضف حصص لهذه المرحلة بعد — أضفها من «الهيكل المدرسي ← الحصص» ثم انسخها إلى بقية الأيام.') }}</div>
 {% else %}
-<p class="muted" style="margin-bottom:12px">اختيار حساب المعلم يمنحه رؤية طلبة هذه الشعبة وتسجيل خروجهم من الحصة. اترك الحصة فارغة لحذفها من الجدول.</p>
+<p class="muted" style="margin-bottom:12px">{{ _('اختيار حساب المعلم يمنحه رؤية طلبة هذه الشعبة وتسجيل خروجهم من الحصة. اترك الحصة فارغة لحذفها من الجدول.') }}</p>
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {% for d, name in days %}
-  <h2>{{ name }}</h2>
+  <h2>{{ _(name) }}</h2>
   <div class="card table-wrap"><table>
-  <thead><tr><th>الحصة</th><th>الوقت</th><th>المادة</th><th>حساب المعلم</th><th>اسم المعلم (إن لم يكن له حساب)</th></tr></thead>
+  <thead><tr><th>{{ _('الحصة') }}</th><th>{{ _('الوقت') }}</th><th>{{ _('المادة') }}</th><th>{{ _('حساب المعلم') }}</th><th>{{ _('اسم المعلم (إن لم يكن له حساب)') }}</th></tr></thead>
   <tbody>{% for p in by_day[d] %}{% set e = entries.get(p.id) %}
   {% if p.kind == 'break' %}
-  <tr><td colspan="2" class="muted">{{ p.label }}</td><td colspan="3" class="muted mono">{{ p.start_time }} – {{ p.end_time }}</td></tr>
+  <tr><td colspan="2" class="muted">{{ label(p) }}</td><td colspan="3" class="muted mono">{{ p.start_time }} – {{ p.end_time }}</td></tr>
   {% else %}
-  <tr><td>{{ p.label }}</td><td class="mono">{{ p.start_time }} – {{ p.end_time }}</td>
-  <td><input type="text" name="subject_{{ p.id }}" value="{{ e.subject if e else '' }}" aria-label="المادة"></td>
-  <td><select name="teacher_{{ p.id }}" aria-label="حساب المعلم"><option value="">—</option>
+  <tr><td>{{ label(p) }}</td><td class="mono">{{ p.start_time }} – {{ p.end_time }}</td>
+  <td><input type="text" name="subject_{{ p.id }}" value="{{ e.subject if e else '' }}" aria-label="{{ _('المادة') }}"></td>
+  <td><select name="teacher_{{ p.id }}" aria-label="{{ _('حساب المعلم') }}"><option value="">—</option>
     {% for u in teachers %}<option value="{{ u.id }}" {% if e and e.teacher_user_id == u.id %}selected{% endif %}>{{ u.full_name }}</option>{% endfor %}</select></td>
-  <td><input type="text" name="tname_{{ p.id }}" value="{{ e.teacher_name if e and not e.teacher_user_id else '' }}" aria-label="اسم المعلم"></td></tr>
+  <td><input type="text" name="tname_{{ p.id }}" value="{{ e.teacher_name if e and not e.teacher_user_id else '' }}" aria-label="{{ _('اسم المعلم') }}"></td></tr>
   {% endif %}
-  {% else %}<tr><td colspan="5" class="muted">لا حصص لهذا اليوم.</td></tr>{% endfor %}</tbody></table></div>
+  {% else %}<tr><td colspan="5" class="muted">{{ _('لا حصص لهذا اليوم.') }}</td></tr>{% endfor %}</tbody></table></div>
   {% endfor %}
-  <button class="btn" type="submit">حفظ الجدول</button>
+  <button class="btn" type="submit">{{ _('حفظ الجدول') }}</button>
 </form>
 {% endif %}
 {% endblock %}

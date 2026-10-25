@@ -5,12 +5,16 @@ from flask import Response
 
 
 def xlsx_response(filename, headers, rows, sheet='البيانات'):
+    """Headers and the sheet name in the page language (left-to-right sheet in English)."""
     from openpyxl import Workbook
+    from utils.i18n import _, is_en
+    headers = [_(h) for h in headers]
+    sheet = _(sheet)
     from openpyxl.styles import Font, PatternFill, Alignment
     wb = Workbook()
     ws = wb.active
     ws.title = sheet[:31]
-    ws.sheet_view.rightToLeft = True
+    ws.sheet_view.rightToLeft = not is_en()
     ws.append(list(headers))
     for c in ws[1]:
         c.font = Font(bold=True, color='FFFFFF')

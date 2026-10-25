@@ -1,46 +1,48 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ lang }}" dir="{{ dir }}">
 <head>
   {% include '_head.html' %}
-  <title>{% block title %}{% endblock %} — {{ current_tenant.name_ar if current_tenant else 'غياب الطلبة' }}</title>
+  <title>{% block title %}{% endblock %} — {{ pick(current_tenant.name_ar, current_tenant.name_en) if current_tenant else _('غياب الطلبة') }}</title>
 </head>
 <body>
 <header class="topbar">
   <a class="brand" href="{{ url_for('main.home') }}">
     {% if current_tenant %}<img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='primary') }}" alt="">{% endif %}
-    <span>{{ current_tenant.name_ar if current_tenant else '' }}</span>
+    <span>{{ pick(current_tenant.name_ar, current_tenant.name_en) if current_tenant else '' }}</span>
   </a>
   {% if current_user %}
   <nav>
-    <a href="{{ url_for('main.home') }}">الرئيسية</a>
-    {% if has_perm('attendance.record') %}<a href="{{ url_for('attendance.daily') }}">التسجيل اليومي</a>{% endif %}
-    {% if has_perm('attendance.record') or has_perm('attendance.approve') or has_perm('reports.view') %}<a href="{{ url_for('attendance.records') }}">السجلات</a>{% endif %}
-    {% if has_perm('class_leave.record') or has_perm('class_leave.approve') %}<a href="{{ url_for('leaves.index') }}">الخروج من الحصة</a>{% endif %}
-    {% if has_perm('students.view') or has_perm('students.manage') %}<a href="{{ url_for('students.index') }}">الطلبة</a>{% endif %}
-    {% if has_perm('reports.view') %}<a href="{{ url_for('reports.index') }}">التقارير</a>{% endif %}
-    {% if has_perm('holidays.manage') or has_perm('holidays.approve') %}<a href="{{ url_for('holidays.index') }}">العطل</a>{% endif %}
+    <a href="{{ url_for('main.home') }}">{{ _('الرئيسية') }}</a>
+    {% if has_perm('attendance.record') %}<a href="{{ url_for('attendance.daily') }}">{{ _('التسجيل اليومي') }}</a>{% endif %}
+    {% if has_perm('attendance.record') or has_perm('attendance.approve') or has_perm('reports.view') %}<a href="{{ url_for('attendance.records') }}">{{ _('السجلات') }}</a>{% endif %}
+    {% if has_perm('class_leave.record') or has_perm('class_leave.approve') %}<a href="{{ url_for('leaves.index') }}">{{ _('الخروج من الحصة') }}</a>{% endif %}
+    {% if has_perm('students.view') or has_perm('students.manage') %}<a href="{{ url_for('students.index') }}">{{ _('الطلبة') }}</a>{% endif %}
+    {% if has_perm('reports.view') %}<a href="{{ url_for('reports.index') }}">{{ _('التقارير') }}</a>{% endif %}
+    {% if has_perm('holidays.manage') or has_perm('holidays.approve') %}<a href="{{ url_for('holidays.index') }}">{{ _('العطل') }}</a>{% endif %}
     {% if has_perm('users.manage') or has_perm('departments.manage') or has_perm('email_log.view') or has_perm('audit.view') or has_perm('settings.manage') or has_perm('structure.manage') or has_perm('timetable.manage') or has_perm('employees.manage') %}
-    <details class="navmenu"><summary>⚙ الإدارة</summary><div>
-      {% if has_perm('structure.manage') or has_perm('timetable.manage') %}<a href="{{ url_for('structure.index') }}">الهيكل المدرسي</a>{% endif %}
-      {% if has_perm('employees.manage') %}<a href="{{ url_for('employees.index') }}">الموظفون</a>{% endif %}
-      {% if has_perm('users.manage') %}<a href="{{ url_for('admin.users') }}">المستخدمون</a><a href="{{ url_for('admin.roles') }}">الأدوار والصلاحيات</a>{% endif %}
-      {% if has_perm('departments.manage') %}<a href="{{ url_for('admin.departments') }}">أقسام الموظفين</a>{% endif %}
-      {% if has_perm('email_log.view') %}<a href="{{ url_for('admin.email_log') }}">سجل البريد</a>{% endif %}
-      {% if has_perm('audit.view') %}<a href="{{ url_for('admin.audit_log') }}">سجل التدقيق</a>{% endif %}
-      {% if has_perm('settings.manage') %}<a href="{{ url_for('admin.settings') }}">الإعدادات</a>{% endif %}
+    <details class="navmenu"><summary>⚙ {{ _('الإدارة') }}</summary><div>
+      {% if has_perm('structure.manage') or has_perm('timetable.manage') %}<a href="{{ url_for('structure.index') }}">{{ _('الهيكل المدرسي') }}</a>{% endif %}
+      {% if has_perm('employees.manage') %}<a href="{{ url_for('employees.index') }}">{{ _('الموظفون') }}</a>{% endif %}
+      {% if has_perm('users.manage') %}<a href="{{ url_for('admin.users') }}">{{ _('المستخدمون') }}</a><a href="{{ url_for('admin.roles') }}">{{ _('الأدوار والصلاحيات') }}</a>{% endif %}
+      {% if has_perm('departments.manage') %}<a href="{{ url_for('admin.departments') }}">{{ _('أقسام الموظفين') }}</a>{% endif %}
+      {% if has_perm('email_log.view') %}<a href="{{ url_for('admin.email_log') }}">{{ _('سجل البريد') }}</a>{% endif %}
+      {% if has_perm('audit.view') %}<a href="{{ url_for('admin.audit_log') }}">{{ _('سجل التدقيق') }}</a>{% endif %}
+      {% if has_perm('settings.manage') %}<a href="{{ url_for('admin.settings') }}">{{ _('الإعدادات') }}</a><a href="{{ url_for('admin.ticker_settings') }}">{{ _('الشريط الإخباري') }}</a>{% endif %}
     </div></details>
     {% endif %}
   </nav>
   <div class="who">
     <span>{{ current_user.full_name }}</span>
-    <a href="{{ url_for('auth.change_password') }}" style="color:#dbe6f3">كلمة المرور</a>
+    <a href="{{ url_for('auth.change_password') }}" style="color:#dbe6f3">{{ _('كلمة المرور') }}</a>
+    {% include '_lang.html' %}
     <form method="post" action="{{ url_for('auth.logout') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="submit">خروج</button>
+      <button type="submit">{{ _('خروج') }}</button>
     </form>
   </div>
   {% endif %}
 </header>
+{% if ticker_view %}{% from '_ticker.html' import ticker %}{{ ticker(ticker_view, ticker_logo) }}{% endif %}
 <main>
   {% include '_flash.html' %}
   {% block content %}{% endblock %}

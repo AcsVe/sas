@@ -1,19 +1,19 @@
 {% extends 'auth/_layout.html' %}
-{% block title %}تسجيل الدخول{% endblock %}
-{% block heading %}تسجيل الدخول{% endblock %}
+{% block title %}{{ _('تسجيل الدخول') }}{% endblock %}
+{% block heading %}{{ _('تسجيل الدخول') }}{% endblock %}
 {% block body %}
-{% if error %}<div class="alert danger">{{ error }}</div>{% endif %}
+{% if error %}<div class="alert danger">{{ _(error) }}</div>{% endif %}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {% if need_org %}
-  <div class="field"><label for="org">رمز المنظمة</label>
+  <div class="field"><label for="org">{{ _('رمز المنظمة') }}</label>
     <input type="text" id="org" name="org" autocomplete="organization" dir="ltr" required></div>
   {% endif %}
-  <div class="field"><label for="username">اسم المستخدم أو البريد</label>
+  <div class="field"><label for="username">{{ _('اسم المستخدم أو البريد') }}</label>
     <input type="text" id="username" name="username" autocomplete="username" dir="ltr" required autofocus></div>
-  <div class="field"><label for="password">كلمة المرور</label>
+  <div class="field"><label for="password">{{ _('كلمة المرور') }}</label>
     <input type="password" id="password" name="password" autocomplete="current-password" dir="ltr" required></div>
-  <button class="btn" type="submit">دخول</button>
+  <button class="btn" type="submit">{{ _('دخول') }}</button>
 </form>
-<div class="links"><a href="{{ url_for('auth.forgot') }}">نسيت كلمة المرور؟</a></div>
+<div class="links"><a href="{{ url_for('auth.forgot') }}">{{ _('نسيت كلمة المرور؟') }}</a></div>
 {% endblock %}

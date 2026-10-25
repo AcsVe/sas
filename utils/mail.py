@@ -12,6 +12,7 @@ from flask import current_app, render_template
 
 from extensions import db
 from utils.helpers import split_emails
+from utils.i18n import _
 
 _token_cache = {'token': None, 'expires_at': 0}
 
@@ -28,7 +29,7 @@ def _graph_token():
     cfg = current_app.config
     tenant, cid, secret = cfg.get('MS_TENANT_ID'), cfg.get('MS_CLIENT_ID'), cfg.get('MS_CLIENT_SECRET')
     if not (tenant and cid and secret):
-        raise RuntimeError('إعدادات Microsoft Graph ناقصة (MS_TENANT_ID / MS_CLIENT_ID / MS_CLIENT_SECRET)')
+        raise RuntimeError(_('إعدادات Microsoft Graph ناقصة (MS_TENANT_ID / MS_CLIENT_ID / MS_CLIENT_SECRET)'))
     now = time.time()
     if _token_cache['token'] and now < _token_cache['expires_at'] - 60:
         return _token_cache['token']
@@ -39,7 +40,7 @@ def _graph_token():
               'grant_type': 'client_credentials'},
         timeout=15)
     if r.status_code != 200:
-        raise RuntimeError(f'فشل الحصول على رمز Graph: HTTP {r.status_code} {r.text[:300]}')
+        raise RuntimeError(_('فشل الحصول على رمز Graph: HTTP {status_code} {v}', status_code=r.status_code, v=r.text[:300]))
     data = r.json()
     _token_cache['token'] = data['access_token']
     _token_cache['expires_at'] = now + int(data.get('expires_in', 3600))
@@ -79,7 +80,7 @@ def send_email(recipients, subject, template, tenant, kind=None, entity=None, **
                    status='failed')
     result = None
     if not to_list:
-        log.status, log.error = 'skipped', 'لا يوجد بريد صالح للمستلم'
+        log.status, log.error = 'skipped', _('لا يوجد بريد صالح للمستلم')
         result = MailResult(False, 'skipped', log.error)
     else:
         try:
@@ -92,7 +93,7 @@ def send_email(recipients, subject, template, tenant, kind=None, entity=None, **
                 sender = (tenant.mail_sender if tenant and tenant.mail_sender
                           else current_app.config.get('MS_SENDER_EMAIL'))
                 if not sender:
-                    raise RuntimeError('MS_SENDER_EMAIL غير مضبوط')
+                    raise RuntimeError(_('MS_SENDER_EMAIL غير مضبوط'))
                 _graph_send(sender, to_list, subject, html)
             log.status = 'sent'
             result = MailResult(True, 'sent', recipients=to_list)

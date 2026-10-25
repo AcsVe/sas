@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% from 'holidays/_fields.html' import holiday_fields %}
-{% block title %}تعديل عطلة{% endblock %}
+{% block title %}{{ _('تعديل عطلة') }}{% endblock %}
 {% block content %}
-<h1>تعديل عطلة: {{ h.title }}</h1>
-{% for err in errors %}<div class="alert danger">{{ err }}</div>{% endfor %}
+<h1>{{ _('تعديل عطلة:') }} {{ h.title }}</h1>
+{% for err in errors %}<div class="alert danger">{{ _(err) }}</div>{% endfor %}
 <div class="card"><form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {{ holiday_fields(h, choices, scopes, sees_all) }}
-  <p class="hint">الحالة: {{ h.status_label }}{% if h.status == 'approved' and not has_perm('holidays.approve') %} — أي تعديل يعيدها إلى «بانتظار الاعتماد»{% endif %}</p>
-  <button class="btn" type="submit">حفظ</button>
-  <a class="btn secondary" href="{{ url_for('holidays.index') }}">رجوع</a>
+  <p class="hint">{{ _('الحالة:') }} {{ _(h.status_label) }}{% if h.status == 'approved' and not has_perm('holidays.approve') %} — {{ _('أي تعديل يعيدها إلى «بانتظار الاعتماد»') }}{% endif %}</p>
+  <button class="btn" type="submit">{{ _('حفظ') }}</button>
+  <a class="btn secondary" href="{{ url_for('holidays.index') }}">{{ _('رجوع') }}</a>
 </form></div>
 {% endblock %}

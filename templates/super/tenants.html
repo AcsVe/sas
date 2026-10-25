@@ -1,13 +1,13 @@
 {% extends 'super/_base.html' %}
 {% block content %}
-<div class="toolbar"><h1>المنظمات</h1><a class="btn" href="{{ url_for('super.tenant_new') }}">+ منظمة جديدة</a></div>
+<div class="toolbar"><h1>{{ _('المنظمات') }}</h1><a class="btn" href="{{ url_for('super.tenant_new') }}">+ {{ _('منظمة جديدة') }}</a></div>
 <div class="card table-wrap"><table>
-<thead><tr><th>المنظمة</th><th>المعرّف</th><th>النطاق</th><th>المستخدمون</th><th>الحالة</th><th></th></tr></thead>
+<thead><tr><th>{{ _('المنظمة') }}</th><th>{{ _('المعرّف') }}</th><th>{{ _('النطاق') }}</th><th>{{ _('المستخدمون') }}</th><th>{{ _('الحالة') }}</th><th></th></tr></thead>
 <tbody>{% for t in tenants %}
 <tr><td>{{ t.name_ar }}<br><small class="muted">{{ t.name_en or '' }}</small></td><td class="mono">{{ t.slug }}</td>
 <td class="mono">{{ t.domain or '—' }}</td><td>{{ counts.get(t.id, 0) }}</td>
-<td>{% if t.is_active %}<span class="badge ok">فعّالة</span>{% else %}<span class="badge bad">موقوفة</span>{% endif %}</td>
-<td><a class="btn small secondary" href="{{ url_for('super.tenant_edit', tenant_id=t.id) }}">تعديل</a></td></tr>
-{% else %}<tr><td colspan="6" class="muted">لا توجد منظمات</td></tr>{% endfor %}
+<td>{% if t.is_active %}<span class="badge ok">{{ _('فعّالة') }}</span>{% else %}<span class="badge bad">{{ _('موقوفة') }}</span>{% endif %}</td>
+<td><a class="btn small secondary" href="{{ url_for('super.tenant_edit', tenant_id=t.id) }}">{{ _('تعديل') }}</a></td></tr>
+{% else %}<tr><td colspan="6" class="muted">{{ _('لا توجد منظمات') }}</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

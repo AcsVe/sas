@@ -1,6 +1,6 @@
 // App-shell cache + offline page only. No business data is cached:
 // attendance records always need a live connection.
-const CACHE_NAME = 'sas-shell-v1';
+const CACHE_NAME = 'sas-shell-v2';
 const SHELL = ['/static/offline.html', '/static/css/app.css', '/static/js/app.js',
   '/static/logo.png', '/static/icon-192.png', '/static/icon-512.png'];
 
@@ -20,6 +20,10 @@ self.addEventListener('fetch', (e) => {
   }
   const url = new URL(req.url);
   if (req.method === 'GET' && url.origin === location.origin && url.pathname.startsWith('/static/')) {
-    e.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
+    // stale-while-revalidate: the cached copy now, a fresh one for next time (an update reaches everyone)
+    e.respondWith(caches.open(CACHE_NAME).then((c) => c.match(req).then((hit) => {
+      const fresh = fetch(req).then((res) => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
+      return hit || fresh;
+    })));
   }
 });

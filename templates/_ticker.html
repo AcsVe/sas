@@ -1,0 +1,12 @@
+{# The news ticker (services/ticker.py). tk = the view dict; preview = the admin page's live sample. #}
+{% macro ticker(tk, logo_src, preview=False) %}
+{% set sep_logo = tk.logo_url if tk.logo == 'url' else (logo_src if tk.logo == 'school' else '') %}
+<div class="ticker{{ ' ticker-preview' if preview }}" data-ticker data-speed="{{ tk.speed }}" data-move="{{ tk.move }}"
+     data-pause="{{ '1' if tk.pause_on_hover else '0' }}"{% if preview %} data-school-logo="{{ logo_src }}"{% endif %} role="region" aria-label="{{ _('الشريط الإخباري') }}"
+     style="--tk-fg:{{ tk.fg }};--tk-bg:{{ tk.bg_rgba }};--tk-size:{{ tk.size }}px;--tk-font:{{ tk.font }};--tk-weight:{{ tk.weight }};--tk-fade:{{ tk.mask_fade }}%;--tk-logo:{{ tk.logo_size }}px;--tk-pulse:{{ tk.logo_pulse_speed }}s">
+  <div class="ticker-viewport"><div class="ticker-track{{ ' pulse' if tk.logo_pulse }}">
+    {% for f in tk.feeds %}<span class="ticker-item" dir="auto">{{ f }}</span>
+    <span class="ticker-sep" aria-hidden="true">{% if tk.separator == 'image' and tk.sep_img_url %}<img src="{{ tk.sep_img_url }}" alt="">{% elif tk.separator == 'logo' and sep_logo %}<img class="tk-logo" src="{{ sep_logo }}" alt="">{% elif tk.separator == 'diamond' %}◆{% elif tk.separator == 'bar' %}|{% else %}•{% endif %}</span>{% endfor %}
+  </div></div>
+</div>
+{% endmacro %}

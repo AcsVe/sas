@@ -1,24 +1,24 @@
 {# One input for a field of the structure engine. f = field spec, v = current value, opts = select options. #}
 {% macro field(f, v, opts, weekdays, multi_names=False) %}
 <div>
-  <label>{{ f.label }}{% if f.required %} *{% endif %}</label>
+  <label>{{ _(f.label) }}{% if f.required %} *{% endif %}</label>
   {% if f.kind == 'select' %}
     <select name="{{ f.name }}" {% if f.required %}required{% endif %}>
       {% if not f.required %}<option value="">—</option>{% endif %}
-      {% for val, lab in opts %}<option value="{{ val }}" {% if v is not none and val == v|string %}selected{% endif %}>{{ lab }}</option>{% endfor %}
+      {% for val, lab in opts %}<option value="{{ _(val) }}" {% if v is not none and val == v|string %}selected{% endif %}>{{ _(lab) }}</option>{% endfor %}
     </select>
   {% elif f.kind in ('bool', 'active') %}
     <select name="{{ f.name }}">
       {% if f.kind == 'active' %}
-      <option value="1" {% if v %}selected{% endif %}>فعّال</option><option value="0" {% if not v %}selected{% endif %}>متوقف</option>
+      <option value="1" {% if v %}selected{% endif %}>{{ _('فعّال') }}</option><option value="0" {% if not v %}selected{% endif %}>{{ _('متوقف') }}</option>
       {% else %}
-      <option value="1" {% if v %}selected{% endif %}>نعم</option><option value="0" {% if not v %}selected{% endif %}>لا</option>
+      <option value="1" {% if v %}selected{% endif %}>{{ _('نعم') }}</option><option value="0" {% if not v %}selected{% endif %}>{{ _('لا') }}</option>
       {% endif %}
     </select>
   {% elif f.kind == 'days' %}
     {% set chosen = (v or '').split(',') %}
     <div class="checks">{% for d, name in weekdays %}
-      <label><input type="checkbox" name="{{ f.name }}" value="{{ d }}" {% if d|string in chosen %}checked{% endif %}> {{ name }}</label>
+      <label><input type="checkbox" name="{{ f.name }}" value="{{ d }}" {% if d|string in chosen %}checked{% endif %}> {{ _(name) }}</label>
     {% endfor %}</div>
   {% elif f.kind == 'date' %}
     <input type="date" name="{{ f.name }}" value="{{ v.isoformat() if v else '' }}">
@@ -27,10 +27,10 @@
   {% elif f.kind == 'int' %}
     <input type="number" name="{{ f.name }}" value="{{ v if v is not none else 0 }}">
   {% elif multi_names %}
-    <textarea name="{{ f.name }}" rows="2" {% if f.required %}required{% endif %} placeholder="{{ f.hint }}"></textarea>
-    <p class="hint">لإضافة أكثر من واحد دفعة واحدة: اكتب اسمًا في كل سطر أو افصل بينها بفاصلة.</p>
+    <textarea name="{{ f.name }}" rows="2" {% if f.required %}required{% endif %} placeholder="{{ _(f.hint) }}"></textarea>
+    <p class="hint">{{ _('لإضافة أكثر من واحد دفعة واحدة: اكتب اسمًا في كل سطر أو افصل بينها بفاصلة.') }}</p>
   {% else %}
-    <input type="text" name="{{ f.name }}" value="{{ v or '' }}" {% if f.required %}required{% endif %} placeholder="{{ f.hint }}">
+    <input type="text" name="{{ f.name }}" value="{{ v or '' }}" {% if f.required %}required{% endif %} placeholder="{{ _(f.hint) }}">
   {% endif %}
 </div>
 {% endmacro %}

@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, g, redirect, url_for
+from flask import Blueprint, render_template, g, redirect, url_for, request, session
 from sqlalchemy import func
 
 from authz import login_required, current_user
 from extensions import db
+from utils.i18n import _
 
 main_bp = Blueprint('main', __name__)
 
@@ -14,6 +15,21 @@ def index():
     if not g.get('user'):
         return redirect(url_for('auth.login'))
     return redirect(url_for('main.home'))
+
+
+@main_bp.route('/lang/<code>')
+def set_lang(code):
+    """Switch the interface language (kept in the session and a one-year cookie)."""
+    from urllib.parse import urlparse
+    code = code if code in ('ar', 'en') else 'ar'
+    session['lang'] = code
+    back = request.referrer or ''
+    # only back to a page of this site (no open redirect)
+    target = back if back and urlparse(back).netloc == request.host else url_for('main.index')
+    resp = redirect(target)
+    resp.set_cookie('lang', code, max_age=365 * 24 * 3600, samesite='Lax',
+                    secure=request.is_secure, httponly=True)
+    return resp
 
 
 def _kpi(label, n, url, hint='', tone=''):
@@ -46,71 +62,71 @@ def dashboard_sections():
         R = lambda **kw: url_for('attendance.records', date_from=t.isoformat(), date_to=t.isoformat(), **kw)  # noqa: E731
         live = [r for r in recs if r.status != 'rejected']
         k = [
-            _kpi('غياب اليوم', sum(r.kind == 'absent' for r in live), R(kind='absent'), 'اضغط للقائمة', 'bad'),
-            _kpi('غياب بعذر', sum(r.kind == 'excused' for r in live), R(kind='excused'), '', 'warn'),
-            _kpi('تأخر اليوم', sum(r.kind == 'late' for r in live), R(kind='late'), '', 'warn'),
-            _kpi('مغادرة مبكرة', sum(r.kind == 'early_leave' for r in live), R(kind='early_leave'), '', 'warn'),
+            _kpi(_('غياب اليوم'), sum(r.kind == 'absent' for r in live), R(kind='absent'), _('اضغط للقائمة'), 'bad'),
+            _kpi(_('غياب بعذر'), sum(r.kind == 'excused' for r in live), R(kind='excused'), '', 'warn'),
+            _kpi(_('تأخر اليوم'), sum(r.kind == 'late' for r in live), R(kind='late'), '', 'warn'),
+            _kpi(_('مغادرة مبكرة'), sum(r.kind == 'early_leave' for r in live), R(kind='early_leave'), '', 'warn'),
         ]
         if has_perm('attendance.approve'):
             pend = scoped(AttendanceRecord.query.join(Student).filter(AttendanceRecord.status == 'pending')).count()
-            k.append(_kpi('بانتظار الاعتماد', pend, url_for('attendance.records', status='pending',
-                                                            date_from='2000-01-01'), 'كل الأيام', 'warn'))
+            k.append(_kpi(_('بانتظار الاعتماد'), pend, url_for('attendance.records', status='pending',
+                                                            date_from='2000-01-01'), _('كل الأيام'), 'warn'))
         if has_perm('guardians.notify'):
             n = sum(1 for r in live if r.kind in ('absent', 'late', 'early_leave') and not r.notified_at
                     and r.student.guardian_email)
-            k.append(_kpi('لم يُشعر أولياء أمورهم', n, url_for('attendance.notify_today'), 'إرسال يدوي بالبريد', 'bad'))
-        out.append(('الغياب اليوم', k))
+            k.append(_kpi(_('لم يُشعر أولياء أمورهم'), n, url_for('attendance.notify_today'), _('إرسال يدوي بالبريد'), 'bad'))
+        out.append((_('الغياب اليوم'), k))
     if has_perm('class_leave.record') or has_perm('class_leave.approve'):
         lv = scoped(ClassLeave.query.join(Student).filter(ClassLeave.leave_date == t)).all()
-        k = [_kpi('خارج الصف الآن', sum(1 for x in lv if x.is_out), url_for('leaves.index', out=1), 'لم يعودوا بعد', 'bad'),
-             _kpi('خروج من الحصة اليوم', len(lv), url_for('leaves.index'), '', '')]
+        k = [_kpi(_('خارج الصف الآن'), sum(1 for x in lv if x.is_out), url_for('leaves.index', out=1), _('لم يعودوا بعد'), 'bad'),
+             _kpi(_('خروج من الحصة اليوم'), len(lv), url_for('leaves.index'), '', '')]
         if has_perm('class_leave.approve'):
-            k.append(_kpi('خروج بانتظار الاعتماد', sum(1 for x in lv if x.status == 'pending'),
-                          url_for('leaves.index', f='الحالة:بانتظار الاعتماد'), '', 'warn'))
-        out.append(('الخروج من الحصة', k))
+            k.append(_kpi(_('خروج بانتظار الاعتماد'), sum(1 for x in lv if x.status == 'pending'),
+                          url_for('leaves.index', f=_('الحالة:بانتظار الاعتماد')), '', 'warn'))
+        out.append((_('الخروج من الحصة'), k))
     if has_perm('students.view') or has_perm('students.manage'):
         sts = scope.students_query(user, include_inactive=True).all()
         L = lambda f: url_for('students.index', f=f)  # noqa: E731
-        out.append(('الطلبة', [
-            _kpi('طلبة فعّالون', sum(s.is_active for s in sts), L('الحالة:فعّال'), '', 'ok'),
-            _kpi('بلا بريد لولي الأمر', sum(s.is_active and not s.guardian_email for s in sts), L('البريد:—'),
-                 'لن يصلهم إشعار الغياب', 'warn'),
-            _kpi('موقوفون', sum(not s.is_active for s in sts), L('الحالة:موقوف'), ''),
+        out.append((_('الطلبة'), [
+            _kpi(_('طلبة فعّالون'), sum(s.is_active for s in sts), L(_('الحالة:فعّال')), '', 'ok'),
+            _kpi(_('بلا بريد لولي الأمر'), sum(s.is_active and not s.guardian_email for s in sts), L(_('البريد:—')),
+                 _('لن يصلهم إشعار الغياب'), 'warn'),
+            _kpi(_('موقوفون'), sum(not s.is_active for s in sts), L(_('الحالة:موقوف')), ''),
         ]))
     if has_perm('holidays.manage') or has_perm('holidays.approve'):
         hs = Holiday.query.filter(Holiday.end_date >= t).all()
         L = lambda f: url_for('holidays.index', f=f)  # noqa: E731
-        out.append(('العطل', [
-            _kpi('بانتظار الاعتماد', sum(h.status == 'pending' for h in hs), L('الحالة:بانتظار الاعتماد'), '', 'warn'),
-            _kpi('عطل قادمة أو جارية', sum(h.status == 'approved' for h in hs), L('الحالة:معتمد'), '', 'ok'),
+        out.append((_('العطل'), [
+            _kpi(_('بانتظار الاعتماد'), sum(h.status == 'pending' for h in hs), L(_('الحالة:بانتظار الاعتماد')), '', 'warn'),
+            _kpi(_('عطل قادمة أو جارية'), sum(h.status == 'approved' for h in hs), L(_('الحالة:معتمد')), '', 'ok'),
         ]))
     if has_perm('employees.manage'):
         emps = Employee.query.all()
         L = lambda f: url_for('employees.index', f=f)  # noqa: E731
-        out.append(('الموظفون', [
-            _kpi('موظفون فعّالون', sum(e.is_active for e in emps), L('الحالة:فعّال'), '', 'ok'),
-            _kpi('بلا بريد', sum(not e.email for e in emps), L('البريد:—'), '', 'warn'),
-            _kpi('بلا حساب دخول', sum(e.user_id is None for e in emps), L('الحساب:بلا حساب'),
-                 'أنشئ حساباتهم من القائمة', ''),
+        out.append((_('الموظفون'), [
+            _kpi(_('موظفون فعّالون'), sum(e.is_active for e in emps), L(_('الحالة:فعّال')), '', 'ok'),
+            _kpi(_('بلا بريد'), sum(not e.email for e in emps), L(_('البريد:—')), '', 'warn'),
+            _kpi(_('بلا حساب دخول'), sum(e.user_id is None for e in emps), L(_('الحساب:بلا حساب')),
+                 _('أنشئ حساباتهم من القائمة'), ''),
         ]))
     if has_perm('users.manage'):
         users = User.query.all()
         now = utcnow()
         with_role = {uid for (uid,) in db.session.query(UserRole.user_id).distinct()}
-        out.append(('المستخدمون', [
-            _kpi('الحسابات الفعّالة', sum(u.is_active for u in users), url_for('admin.users', f='الحالة:فعّال'), 'اضغط للقائمة', 'ok'),
-            _kpi('الحسابات الموقوفة', sum(not u.is_active for u in users), url_for('admin.users', f='الحالة:موقوف'), '', 'bad'),
-            _kpi('مقفلة مؤقتًا', sum(bool(u.is_active and u.locked_until and u.locked_until > now) for u in users),
-                 url_for('admin.users', f='الحالة:مقفل مؤقتًا'), 'محاولات دخول خاطئة', 'warn'),
-            _kpi('بلا دور', sum(u.id not in with_role for u in users), url_for('admin.users'), 'لا يستطيعون أداء أي مهمة', 'warn'),
-            _kpi('لم يدخلوا بعد', sum(u.last_login is None for u in users), url_for('admin.users'), 'أرسل لهم رابط كلمة المرور'),
+        out.append((_('المستخدمون'), [
+            _kpi(_('الحسابات الفعّالة'), sum(u.is_active for u in users), url_for('admin.users', f=_('الحالة:فعّال')), _('اضغط للقائمة'), 'ok'),
+            _kpi(_('الحسابات الموقوفة'), sum(not u.is_active for u in users), url_for('admin.users', f=_('الحالة:موقوف')), '', 'bad'),
+            _kpi(_('مقفلة مؤقتًا'), sum(bool(u.is_active and u.locked_until and u.locked_until > now) for u in users),
+                 url_for('admin.users', f=_('الحالة:مقفل مؤقتًا')), _('محاولات دخول خاطئة'), 'warn'),
+            _kpi(_('بلا دور'), sum(u.id not in with_role for u in users), url_for('admin.users'), _('لا يستطيعون أداء أي مهمة'), 'warn'),
+            _kpi(_('لم يدخلوا بعد'), sum(u.last_login is None for u in users), url_for('admin.users'), _('أرسل لهم رابط كلمة المرور')),
         ]))
     if has_perm('email_log.view'):
         failed = EmailLog.query.filter(EmailLog.status != 'sent', EmailLog.acknowledged.is_(False)).count()
         sent = EmailLog.query.filter(EmailLog.status == 'sent').count()
-        out.append(('البريد', [
-            _kpi('أخطاء بريد جديدة', failed, url_for('admin.email_log', failed=1), 'رسائل لم تصل', 'bad'),
-            _kpi('رسائل أُرسلت', sent, url_for('admin.email_log', f='الحالة:أُرسل'), '', 'ok'),
+        out.append((_('البريد'), [
+            _kpi(_('أخطاء بريد جديدة'), failed, url_for('admin.email_log', failed=1), _('رسائل لم تصل'), 'bad'),
+            _kpi(_('رسائل أُرسلت'), sent, url_for('admin.email_log', f=_('الحالة:أُرسل')), '', 'ok'),
         ]))
     return out
 

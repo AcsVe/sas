@@ -123,7 +123,12 @@ def test_structure_needs_permission(app, school):
 def test_students_import_and_protected_delete(app, school):
     c = _client(app, 'admin')
     text = 'رقم الطالب\tالاسم\tالصف\tالشعبة\tبريد ولي الأمر\n900\tسعيد أحمد\tالصف 2\tأ\tp@x.test\n901\tبلا شعبة\t\t\t'
-    c.post('/students/import', data={'text': text})
+    r = c.post('/students/import', data={'text': text})
+    import re
+    token = re.search(r'/students/import/([0-9a-f]{32})/apply', r.data.decode()).group(1)
+    with tenant_context(school['a']):
+        assert Student.query.filter_by(student_number='900').first() is None        # preview writes nothing
+    c.post(f'/students/import/{token}/apply')
     with tenant_context(school['a']):
         s = Student.query.filter_by(student_number='900').one()
         assert s.section_id == school['sec2'] and s.guardian_email == 'p@x.test'

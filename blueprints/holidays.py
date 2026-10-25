@@ -10,6 +10,7 @@ from models import Holiday, Stage, Grade, Section, STATUSES
 from services import scope
 from utils.audit import audit
 from utils.school import form_ids, parse_day, today
+from utils.i18n import _
 
 holidays_bp = Blueprint('holidays', __name__)
 SCOPES = [('school', 'المدرسة كلها'), ('stages', 'مراحل'), ('grades', 'صفوف'), ('sections', 'شعب')]
@@ -31,10 +32,10 @@ def _choices():
 
 def _names(h, choices=None):
     if h.scope_type == 'school':
-        return 'المدرسة كلها'
+        return _('المدرسة كلها')
     model = {'stages': Stage, 'grades': Grade, 'sections': Section}[h.scope_type]
     objs = model.query.filter(model.id.in_(h.ids or {0})).all()
-    return '، '.join((o.full_name if isinstance(o, Section) else o.name) for o in objs) or '—'
+    return _('، ').join((o.full_name if isinstance(o, Section) else o.name) for o in objs) or '—'
 
 
 def _can_touch(h):
@@ -53,24 +54,24 @@ def _apply(h, data):
     end = end or start
     st = data.get('scope_type') or 'school'
     if not title:
-        errors.append('عنوان العطلة مطلوب')
+        errors.append(_('عنوان العطلة مطلوب'))
     if start is None:
-        errors.append('تاريخ البداية مطلوب')
+        errors.append(_('تاريخ البداية مطلوب'))
     elif end < start:
-        errors.append('تاريخ النهاية قبل البداية')
+        errors.append(_('تاريخ النهاية قبل البداية'))
     if st not in dict(SCOPES):
-        errors.append('النطاق غير صالح')
+        errors.append(_('النطاق غير صالح'))
     if errors:
         return errors
     if st == 'school':
         if not scope.sees_all(g.user):
-            return ['عطلة المدرسة كلها يقترحها من له صلاحية كل المراحل؛ اختر مراحلك']
+            return [_('عطلة المدرسة كلها يقترحها من له صلاحية كل المراحل؛ اختر مراحلك')]
         ids = set()
     else:
         allowed = {o.id for o in _choices()[st]}
         ids = {int(x) for x in data.getlist('scope_ids_' + st) if x.isdigit()} & allowed
         if not ids:
-            return ['اختر عنصرًا واحدًا على الأقل من النطاق']
+            return [_('اختر عنصرًا واحدًا على الأقل من النطاق')]
     h.title, h.start_date, h.end_date, h.scope_type = title[:200], start, end, st
     h.scope_ids = ','.join(str(i) for i in sorted(ids))
     return []
@@ -108,7 +109,7 @@ def form(hid=None):
             db.session.flush()
             audit('holiday.created' if not hid else 'holiday.updated', 'holiday', h.id, title=h.title)
             db.session.commit()
-            flash('تم الحفظ' + ('' if h.status == 'approved' else ' — بانتظار الاعتماد'), 'success')
+            flash(_('تم الحفظ') + ('' if h.status == 'approved' else _(' — بانتظار الاعتماد')), 'success')
             return redirect(url_for('holidays.index'))
         db.session.rollback()
         if not hid:
@@ -147,6 +148,6 @@ def bulk():
     if action != 'delete':
         audit(f'holiday.bulk_{action}', count=done)
     db.session.commit()
-    verb = {'approve': 'اعتُمد', 'reject': 'رُفض', 'delete': 'حُذف'}[action]
+    verb = {'approve': _('اعتُمد'), 'reject': _('رُفض'), 'delete': _('حُذف')}[action]
     flash(f'{verb}: {done}', 'success' if done else 'warning')
     return redirect(url_for('holidays.index'))

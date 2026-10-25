@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}{{ _('استيراد الطلبة') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>{{ _('استيراد الطلبة وبناء الشعب') }}</h1>
+  <div class="actions-row">
+    <a class="btn secondary small" href="{{ url_for('students.template_xlsx') }}">⬇ {{ _('نموذج ملف الاستيراد') }}</a>
+    <a class="btn secondary small" href="{{ url_for('students.index') }}">{{ _('الطلبة') }}</a>
+  </div>
+</div>
+
+<ol class="steps">
+  <li class="{{ 'on' if not plan else 'done' }}">{{ _('الملف') }}</li>
+  <li class="{{ 'on' if plan else '' }}">{{ _('المعاينة') }}</li>
+  <li>{{ _('التنفيذ') }}</li>
+</ol>
+
+{% if not plan %}
+<div class="grid2">
+<form class="card" method="post" action="{{ url_for('students.import_list') }}" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>{{ _('ملف Excel ‏(.xlsx) أو CSV') }}</label>
+  <input type="file" name="file" accept=".xlsx,.xlsm,.csv,.txt,.tsv">
+  <p class="hint">{{ _('تُقرأ كل أوراق الملف: يصلح ملف فيه ورقة لكل شعبة.') }}</p>
+  <label style="margin-top:12px">{{ _('أو الصق القائمة من Excel') }}</label>
+  <textarea name="text" rows="6" placeholder="{{ _('الاسم') }}	{{ _('الصف') }}	{{ _('الشعبة') }}"></textarea>
+  <div class="row" style="margin-top:12px">
+    <div><label>{{ _('الشعبة لمن لا يُعرف صفه') }}</label><select name="section_id"><option value="">—</option>
+      {% for sec in sections %}<option value="{{ sec.id }}">{{ label(sec.grade.stage) }} — {{ sec.full_name }}</option>{% endfor %}</select></div>
+  </div>
+  <div class="checks"><label><input type="checkbox" name="update" value="1"> {{ _('انقل الطلبة الموجودين إلى الشعبة المذكورة في الملف') }}</label></div>
+  <button class="btn" type="submit" style="margin-top:12px">{{ _('معاينة') }}</button>
+  <p class="hint">{{ _('لا يُحفظ شيء قبل الضغط على «تنفيذ» في صفحة المعاينة.') }}</p>
+</form>
+<div class="card">
+  <h2 style="margin-top:0">{{ _('ما الذي يفهمه الاستيراد؟') }}</h2>
+  <ul class="plain">
+    <li>{{ _('سطر العناوين في أي من الأسطر العشرة الأولى، بالعربية أو الإنجليزية: الاسم، الصف، الشعبة، المرحلة، رقم الطالب، مربي الصف، ولي الأمر…') }}</li>
+    <li>{{ _('الصف والشعبة في عمودين، أو رمز واحد في عمود الصف أو في اسم الورقة: 4A، ‏4CPA، ‏Grade 6-C، ‏Five CP-A، ‏الصف الرابع / أ.') }}</li>
+    <li>{{ _('الصف يُعرف برقمه ويُطابق الصفوف الموجودة؛ والشعبة باسمها (A تطابق أ).') }}</li>
+    <li>{{ _('ما لا يوجد من صفوف وشعب يُقترح إنشاؤه، ويُلحق الصف الجديد بالمرحلة التي يشمله اسمها (مثل «المرحلة الأساسية 4-6»).') }}</li>
+    <li>{{ _('الطالب المكرر في الملف (كورقة منسوخة) يُضاف مرة واحدة، والموجود في النظام (برقمه أو باسمه) لا يُضاف ثانية.') }}</li>
+  </ul>
+</div>
+</div>
+{% else %}
+{% set c = plan.counts %}
+<div class="kpis">
+  <div class="kpi ok"><div class="n">{{ c.new }}</div><div class="l">{{ _('طلبة جدد') }}</div><small>{{ _('سيُضافون') }}</small></div>
+  <div class="kpi"><div class="n">{{ c.same }}</div><div class="l">{{ _('موجودون') }}</div><small>{{ _('في الشعبة نفسها — بلا تغيير') }}</small></div>
+  <div class="kpi {{ 'warn' if c.move else '' }}"><div class="n">{{ c.move }}</div><div class="l">{{ _('سيُنقلون') }}</div><small>{{ _('إلى الشعبة المذكورة في الملف') }}</small></div>
+  <div class="kpi"><div class="n">{{ c.other }}</div><div class="l">{{ _('موجودون في شعبة أخرى') }}</div><small>{{ _('يبقون في شعبتهم') }}</small></div>
+  <div class="kpi"><div class="n">{{ c.repeats }}</div><div class="l">{{ _('أسطر مكررة') }}</div><small>{{ _('تُتجاهل') }}</small></div>
+  <div class="kpi {{ 'bad' if c.problems else '' }}"><div class="n">{{ c.problems }}</div><div class="l">{{ _('أسطر لم تُفهم') }}</div><small>{{ _('لن تُستورد') }}</small></div>
+</div>
+
+<form method="post" action="{{ url_for('students.import_apply', token=token) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{% if plan.sheets|length > 1 %}
+<div class="card">
+  <h2 style="margin-top:0">{{ _('أوراق الملف') }}</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th class="sel"></th><th>{{ _('الورقة') }}</th><th>{{ _('الطلبة') }}</th><th>{{ _('ملاحظة') }}</th></tr></thead>
+    <tbody>{% for sh in plan.sheets %}<tr>
+      <td class="sel"><input type="checkbox" name="sheet" value="{{ sh.name }}" {% if sh.name not in plan.skipped %}checked{% endif %} aria-label="{{ sh.name }}"></td>
+      <td>{{ sh.name }}</td><td>{{ sh.students }}</td>
+      <td>{% if sh.copy_of %}<span class="badge {{ 'warn' if sh.name in plan.skipped else '' }}">{{ _('{n} من طلبتها في «{s}»', n=sh.overlap, s=sh.copy_of) }}</span>
+        {% if sh.name in plan.skipped %} <small class="muted">{{ _('نسخة — تُركت') }}</small>{% endif %}{% endif %}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  <button class="btn secondary small" name="refresh" value="1" formnovalidate style="margin-top:10px">↻ {{ _('إعادة المعاينة بالأوراق المحددة') }}</button>
+</div>
+{% endif %}
+{% if creates or plan.new_stages %}
+<div class="card">
+  <h2 style="margin-top:0">{{ _('الهيكل الذي سيُنشأ') }}</h2>
+  {% if not can_create %}<div class="alert danger">{{ _('يلزم إنشاء صفوف أو شعب، وهذا يحتاج صلاحية «الهيكل المدرسي».') }}</div>{% endif %}
+  {% if plan.new_stages %}<p><b>{{ _('مراحل جديدة') }}:</b> {% for ns in plan.new_stages %}<span class="badge">{{ ns.name }}</span> {% endfor %}</p>{% endif %}
+  {% if plan.new_grades %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>{{ _('الصف الجديد') }}</th><th>{{ _('بالإنجليزية') }}</th><th>{{ _('المرحلة') }}</th></tr></thead>
+    <tbody>{% for g in plan.new_grades %}<tr><td>{{ g.name }}</td><td>{{ g.name_en }}</td><td>
+      {% if g.stage_key %}{% for ns in plan.new_stages if ns.key == g.stage_key %}<span class="badge warn">{{ _('جديدة') }}</span> {{ ns.name }}{% endfor %}
+      {% else %}<select name="stage_{{ g.key }}" {% if not g.stage_id %}required{% endif %}>
+        {% if not g.stage_id %}<option value="">{{ _('— اختر المرحلة —') }}</option>{% endif %}
+        {% for st in stages %}<option value="{{ st.id }}" {% if st.id == g.stage_id %}selected{% endif %}>{{ label(st) }}</option>{% endfor %}
+        <option value="new">{{ _('مرحلة جديدة (الاسم أدناه)') }}</option>
+      </select>{% endif %}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% if need_stage %}<div class="row" style="margin-top:10px"><div><label>{{ _('اسم المرحلة الجديدة (إن اخترتها)') }}</label>
+    <input type="text" name="new_stage" placeholder="{{ _('مثل المرحلة الثانوية') }}"></div></div>{% endif %}
+  {% endif %}
+  {% if plan.new_sections %}
+  <p><b>{{ _('شعب جديدة') }} ({{ plan.new_sections|length }}):</b>
+    {% for s in plan.new_sections %}<span class="badge">{{ s.grade_number }} / {{ s.name }}</span> {% endfor %}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+  <h2 style="margin-top:0">{{ _('التوزيع على الشعب') }}</h2>
+  <div class="table-wrap"><table data-table id="t-dist">
+    <thead><tr><th data-filter="select">{{ _('الصف') }}</th><th data-filter="text">{{ _('الشعبة') }}</th>
+      <th data-sort="num">{{ _('الطلبة في الملف') }}</th><th data-sort="num">{{ _('منهم جدد') }}</th>
+      <th data-filter="text">{{ _('مربي الصف') }}</th><th data-filter="select">{{ _('الشعبة') }}</th></tr></thead>
+    <tbody>{% for p in plan.summary %}<tr><td>{{ p.grade }}</td><td>{{ p.section }}</td><td>{{ p.total }}</td><td>{{ p.new }}</td>
+      <td>{{ p.homeroom or '—' }}</td>
+      <td data-value="{{ _('جديدة') if p.is_new else _('موجودة') }}">{% if p.is_new %}<span class="badge warn">{{ _('جديدة') }}</span>{% else %}<span class="badge ok">{{ _('موجودة') }}</span>{% endif %}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+
+{% if plan.warnings %}
+<div class="card"><h2 style="margin-top:0">{{ _('للتحقق') }} ({{ plan.warnings|length }})</h2>
+  <div class="table-wrap"><table><thead><tr><th>{{ _('الموضع') }}</th><th>{{ _('الاسم') }}</th><th>{{ _('الملاحظة') }}</th></tr></thead>
+  <tbody>{% for p in plan.warnings %}<tr><td class="mono">{{ p.where }}</td><td>{{ p.name }}</td><td>{{ p.why }}</td></tr>{% endfor %}</tbody></table></div></div>
+{% endif %}
+{% if plan.problems %}
+<div class="card"><h2 style="margin-top:0">{{ _('أسطر لن تُستورد') }} ({{ plan.problems|length }})</h2>
+  <div class="table-wrap"><table><thead><tr><th>{{ _('الموضع') }}</th><th>{{ _('الاسم') }}</th><th>{{ _('السبب') }}</th></tr></thead>
+  <tbody>{% for p in plan.problems %}<tr><td class="mono">{{ p.where }}</td><td>{{ p.name }}</td><td>{{ p.why }}</td></tr>{% endfor %}</tbody></table></div></div>
+{% endif %}
+
+<details class="card panel">
+  <summary>{{ _('كل الطلبة في الملف') }} ({{ plan.rows|length }})</summary>
+  <div class="list-tools"><input type="search" data-list-search="t-rows" placeholder="{{ _('بحث') }}" aria-label="{{ _('بحث') }}"></div>
+  <div class="table-wrap"><table data-table id="t-rows">
+    <thead><tr><th data-filter="text">{{ _('الاسم') }}</th><th data-filter="text">{{ _('بالإنجليزية') }}</th>
+      <th data-filter="select">{{ _('الشعبة') }}</th><th data-filter="select">{{ _('الحالة') }}</th><th data-filter="text">{{ _('الموضع في الملف') }}</th></tr></thead>
+    <tbody>{% for r in plan.rows %}{% set st = {'new': _('جديد'), 'same': _('موجود'), 'move': _('سيُنقل'), 'other': _('في شعبة أخرى')}[r.status] %}
+      <tr><td>{{ r.name }}</td><td>{{ r.name_en if r.name_en and r.name_en != r.name else '—' }}</td>
+      <td>{% for p in plan.summary if p.place == r.place %}{{ p.grade }} / {{ p.section }}{% endfor %}</td>
+      <td data-value="{{ st }}"><span class="badge {{ {'new': 'ok', 'move': 'warn'}.get(r.status, '') }}">{{ st }}</span>{% if r.current and r.status != 'same' %} <small class="muted">{{ r.current }}</small>{% endif %}</td>
+      <td class="mono">{{ r.where }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</details>
+
+<div class="actions-row">
+  <button class="btn" type="submit" {% if creates and not can_create %}disabled{% endif %}>✔ {{ _('تنفيذ') }}</button>
+  <a class="btn secondary" href="{{ url_for('students.import_list') }}">{{ _('ملف آخر') }}</a>
+  <span class="muted">{{ _('الملف') }}: {{ plan.file }}</span>
+</div>
+</form>
+{% endif %}
+{% endblock %}

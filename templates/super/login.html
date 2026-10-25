@@ -1,12 +1,12 @@
 {% extends 'auth/_layout.html' %}
-{% block title %}المدير العام{% endblock %}
-{% block heading %}دخول المدير العام{% endblock %}
+{% block title %}{{ _('المدير العام') }}{% endblock %}
+{% block heading %}{{ _('دخول المدير العام') }}{% endblock %}
 {% block body %}
-{% if error %}<div class="alert danger">{{ error }}</div>{% endif %}
+{% if error %}<div class="alert danger">{{ _(error) }}</div>{% endif %}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="field"><label for="username">اسم المستخدم</label><input type="text" id="username" name="username" dir="ltr" required autofocus></div>
-  <div class="field"><label for="password">كلمة المرور</label><input type="password" id="password" name="password" dir="ltr" required></div>
-  <button class="btn" type="submit">دخول</button>
+  <div class="field"><label for="username">{{ _('اسم المستخدم') }}</label><input type="text" id="username" name="username" dir="ltr" required autofocus></div>
+  <div class="field"><label for="password">{{ _('كلمة المرور') }}</label><input type="password" id="password" name="password" dir="ltr" required></div>
+  <button class="btn" type="submit">{{ _('دخول') }}</button>
 </form>
 {% endblock %}

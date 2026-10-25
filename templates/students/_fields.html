@@ -1,16 +1,16 @@
 {% macro student_fields(s, sections, genders, section_id=None) %}
 <div class="row">
-  <div><label>اسم الطالب *</label><input type="text" name="full_name" value="{{ s.full_name or '' }}" required></div>
-  <div><label>رقم الطالب</label><input type="text" name="student_number" value="{{ s.student_number or '' }}" dir="ltr"></div>
-  <div><label>الشعبة *</label><select name="section_id" required><option value="">—</option>
-    {% for sec in sections %}<option value="{{ sec.id }}" {% if (s.section_id or section_id) == sec.id %}selected{% endif %}>{{ sec.grade.stage.name }} — {{ sec.full_name }}</option>{% endfor %}</select></div>
-  <div><label>الجنس</label><select name="gender"><option value="">—</option>
-    {% for k, v in genders.items() %}<option value="{{ k }}" {% if s.gender == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></div>
+  <div><label>{{ _('اسم الطالب *') }}</label><input type="text" name="full_name" value="{{ s.full_name or '' }}" required></div>
+  <div><label>{{ _('رقم الطالب') }}</label><input type="text" name="student_number" value="{{ s.student_number or '' }}" dir="ltr"></div>
+  <div><label>{{ _('الشعبة *') }}</label><select name="section_id" required><option value="">—</option>
+    {% for sec in sections %}<option value="{{ sec.id }}" {% if (s.section_id or section_id) == sec.id %}selected{% endif %}>{{ label(sec.grade.stage) }} — {{ sec.full_name }}</option>{% endfor %}</select></div>
+  <div><label>{{ _('الجنس') }}</label><select name="gender"><option value="">—</option>
+    {% for k, v in genders.items() %}<option value="{{ k }}" {% if s.gender == k %}selected{% endif %}>{{ _(v) }}</option>{% endfor %}</select></div>
 </div>
 <div class="row">
-  <div><label>ولي الأمر</label><input type="text" name="guardian_name" value="{{ s.guardian_name or '' }}"></div>
-  <div><label>صلة القرابة</label><input type="text" name="guardian_relation" value="{{ s.guardian_relation or '' }}" placeholder="الأب، الأم…"></div>
-  <div><label>هاتف ولي الأمر</label><input type="text" name="guardian_phone" value="{{ s.guardian_phone or '' }}" dir="ltr"></div>
-  <div><label>بريد ولي الأمر</label><input type="text" name="guardian_email" value="{{ s.guardian_email or '' }}" dir="ltr" placeholder="يمكن أكثر من بريد مفصولة بفاصلة"></div>
+  <div><label>{{ _('ولي الأمر') }}</label><input type="text" name="guardian_name" value="{{ s.guardian_name or '' }}"></div>
+  <div><label>{{ _('صلة القرابة') }}</label><input type="text" name="guardian_relation" value="{{ s.guardian_relation or '' }}" placeholder="{{ _('الأب، الأم…') }}"></div>
+  <div><label>{{ _('هاتف ولي الأمر') }}</label><input type="text" name="guardian_phone" value="{{ s.guardian_phone or '' }}" dir="ltr"></div>
+  <div><label>{{ _('بريد ولي الأمر') }}</label><input type="text" name="guardian_email" value="{{ s.guardian_email or '' }}" dir="ltr" placeholder="{{ _('يمكن أكثر من بريد مفصولة بفاصلة') }}"></div>
 </div>
 {% endmacro %}

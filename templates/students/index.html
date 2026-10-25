@@ -1,85 +1,69 @@
 {% extends 'base.html' %}
 {% from 'students/_fields.html' import student_fields %}
-{% block title %}الطلبة{% endblock %}
+{% block title %}{{ _('الطلبة') }}{% endblock %}
 {% block content %}
 <div class="toolbar">
-  <h1>الطلبة <span class="count-pill" data-count-for="t-students">{{ students|length }}</span></h1>
+  <h1>{{ _('الطلبة') }} <span class="count-pill" data-count-for="t-students">{{ students|length }}</span></h1>
   <div class="actions-row">
     <form method="get" class="actions-row">
-      <select name="section" aria-label="الشعبة" style="width:auto"><option value="">كل الشعب</option>
-        {% for sec in sections %}<option value="{{ sec.id }}" {% if section_id == sec.id %}selected{% endif %}>{{ sec.grade.stage.name }} — {{ sec.full_name }}</option>{% endfor %}</select>
-      <button class="btn small secondary" type="submit">عرض</button>
+      <select name="section" aria-label="{{ _('الشعبة') }}" style="width:auto"><option value="">{{ _('كل الشعب') }}</option>
+        {% for sec in sections %}<option value="{{ sec.id }}" {% if section_id == sec.id %}selected{% endif %}>{{ label(sec.grade.stage) }} — {{ sec.full_name }}</option>{% endfor %}</select>
+      <button class="btn small secondary" type="submit">{{ _('عرض') }}</button>
     </form>
-    <a class="btn secondary small" href="{{ url_for('students.index', section=section_id or None, export='xlsx') }}">⬇ تصدير Excel</a>
-    {% if has_perm('students.manage') %}<a class="btn secondary small" href="{{ url_for('students.template') }}">⬇ نموذج ملف الاستيراد</a>{% endif %}
+    <a class="btn secondary small" href="{{ url_for('students.index', section=section_id or None, export='xlsx') }}">⬇ {{ _('تصدير Excel') }}</a>
+    {% if has_perm('students.manage') %}<a class="btn small" href="{{ url_for('students.import_list') }}">📋 {{ _('استيراد قائمة أو ملف') }}</a>{% endif %}
   </div>
 </div>
 
 {% if has_perm('students.manage') %}
-{% if not sections %}<div class="alert warning">لا توجد شعب ضمن نطاقك بعد — أضف المراحل والصفوف والشعب من «الهيكل المدرسي» أو اطلب ربط حسابك بمرحلة.</div>{% endif %}
+{% if not sections %}<div class="alert warning">{{ _('لا توجد شعب ضمن نطاقك بعد — أضف المراحل والصفوف والشعب من «الهيكل المدرسي» أو اطلب ربط حسابك بمرحلة.') }}</div>{% endif %}
 <div class="grid2">
 <details class="card panel" {% if not students %}open{% endif %}>
-  <summary>➕ إضافة طالب</summary>
+  <summary>➕ {{ _('إضافة طالب') }}</summary>
   <form method="post" action="{{ url_for('students.form') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {{ student_fields({}, sections, genders, section_id) }}
-    <button class="btn" type="submit">إضافة</button>
-  </form>
-</details>
-<details class="card panel" {% if not students %}open{% endif %}>
-  <summary>📋 إضافة قائمة أو استيراد ملف</summary>
-  <form method="post" action="{{ url_for('students.import_list') }}" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>الصق القائمة (سطر لكل طالب، والأعمدة مفصولة بفاصلة أو Tab كما تُنسخ من Excel)</label>
-    <textarea name="text" rows="5" placeholder="{{ field_labels|join('، ') }}"></textarea>
-    <p class="hint">ترتيب الأعمدة: {{ field_labels|join(' ← ') }}. إن كان السطر الأول عناوين أعمدة فيُعتمد ترتيبها. يكفي الاسم والشعبة.</p>
-    <div class="row">
-      <div><label>أو ملف Excel ‏(.xlsx) أو CSV</label><input type="file" name="file" accept=".xlsx,.xlsm,.csv,.txt,.tsv"></div>
-      <div><label>الشعبة الافتراضية لمن لا شعبة له</label><select name="section_id"><option value="">—</option>
-        {% for sec in sections %}<option value="{{ sec.id }}" {% if section_id == sec.id %}selected{% endif %}>{{ sec.grade.stage.name }} — {{ sec.full_name }}</option>{% endfor %}</select></div>
-    </div>
-    <div class="checks"><label><input type="checkbox" name="update" value="1"> تحديث بيانات الموجودين (المطابقة برقم الطالب)</label></div>
-    <button class="btn" type="submit">استيراد</button>
+    <button class="btn" type="submit">{{ _('إضافة') }}</button>
   </form>
 </details>
 </div>
 {% endif %}
 
 <div class="list-tools">
-  <input type="search" data-list-search="t-students" placeholder="بحث بالاسم أو الرقم أو ولي الأمر" aria-label="بحث">
+  <input type="search" data-list-search="t-students" placeholder="{{ _('بحث بالاسم أو الرقم أو ولي الأمر') }}" aria-label="{{ _('بحث') }}">
 </div>
 {% if has_perm('students.manage') %}
 <form class="bulk-bar" method="post" action="{{ url_for('students.bulk') }}" data-bulk-for="t-students">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <span>المحدد: <b data-selected-count>0</b></span>
-  <button class="btn small ok" name="action" value="activate">تفعيل</button>
-  <button class="btn small secondary" name="action" value="deactivate">إيقاف</button>
-  <select name="section_id" aria-label="نقل إلى شعبة" style="width:auto;padding:5px 8px"><option value="">— الشعبة —</option>
-    {% for sec in sections %}<option value="{{ sec.id }}">{{ sec.grade.stage.name }} — {{ sec.full_name }}</option>{% endfor %}</select>
-  <button class="btn small secondary" name="action" value="move">نقل إلى الشعبة</button>
-  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من الطلبة؟ من له سجلات غياب أو خروج لا يُحذف.">حذف</button>
+  <span>{{ _('المحدد:') }} <b data-selected-count>0</b></span>
+  <button class="btn small ok" name="action" value="activate">{{ _('تفعيل') }}</button>
+  <button class="btn small secondary" name="action" value="deactivate">{{ _('إيقاف') }}</button>
+  <select name="section_id" aria-label="{{ _('نقل إلى شعبة') }}" style="width:auto;padding:5px 8px"><option value="">— {{ _('الشعبة —') }}</option>
+    {% for sec in sections %}<option value="{{ sec.id }}">{{ label(sec.grade.stage) }} — {{ sec.full_name }}</option>{% endfor %}</select>
+  <button class="btn small secondary" name="action" value="move">{{ _('نقل إلى الشعبة') }}</button>
+  <button class="btn small danger" name="action" value="delete" data-confirm="{{ _('حذف') }} {n} {{ _('من الطلبة؟ من له سجلات غياب أو خروج لا يُحذف.') }}">{{ _('حذف') }}</button>
 </form>
 {% endif %}
 
 <div class="card table-wrap"><table data-table id="t-students">
-<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
-<th data-filter="text">الاسم</th><th data-filter="text">الرقم</th><th data-filter="select">المرحلة</th><th data-filter="select">الصف</th>
-<th data-filter="select">الشعبة</th><th data-filter="select">الجنس</th><th data-filter="text">ولي الأمر</th><th data-filter="text">الهاتف</th>
-<th data-filter="select">البريد</th><th data-sort="num">أيام الغياب</th><th data-filter="select">الحالة</th><th data-nosort></th></tr></thead>
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="{{ _('تحديد الكل') }}"></th>
+<th data-filter="text">{{ _('الاسم') }}</th><th data-filter="text">{{ _('الرقم') }}</th><th data-filter="select">{{ _('المرحلة') }}</th><th data-filter="select">{{ _('الصف') }}</th>
+<th data-filter="select">{{ _('الشعبة') }}</th><th data-filter="select">{{ _('الجنس') }}</th><th data-filter="text">{{ _('ولي الأمر') }}</th><th data-filter="text">{{ _('الهاتف') }}</th>
+<th data-filter="select">{{ _('البريد') }}</th><th data-sort="num">{{ _('أيام الغياب') }}</th><th data-filter="select">{{ _('الحالة') }}</th><th data-nosort></th></tr></thead>
 <tbody>
 {% for s in students %}
-<tr data-id="{{ s.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ s.id }}" aria-label="تحديد {{ s.full_name }}"></td>
+<tr data-id="{{ s.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ s.id }}" aria-label="{{ _('تحديد') }} {{ s.full_name }}"></td>
 <td><a href="{{ url_for('students.profile', student_id=s.id) }}">{{ s.full_name }}</a></td>
 <td class="mono">{{ s.student_number or '—' }}</td>
-<td>{{ s.section.grade.stage.name }}</td><td>{{ s.section.grade.name }}</td><td>{{ s.section.name }}</td>
-<td>{{ genders.get(s.gender, '—') }}</td>
+<td>{{ label(s.section.grade.stage) }}</td><td>{{ label(s.section.grade) }}</td><td>{{ s.section.name }}</td>
+<td>{{ _(genders.get(s.gender, '—')) }}</td>
 <td>{{ s.guardian_name or '—' }}{% if s.guardian_relation %} <small class="muted">({{ s.guardian_relation }})</small>{% endif %}</td>
 <td class="mono">{{ s.guardian_phone or '—' }}</td>
-<td data-value="{{ 'له بريد' if s.guardian_email else '—' }}">{% if s.guardian_email %}<span class="mono">{{ s.guardian_email }}</span>{% else %}<span class="badge warn">بلا بريد</span>{% endif %}</td>
+<td data-value="{{ _('له بريد') if s.guardian_email else '—' }}">{% if s.guardian_email %}<span class="mono">{{ s.guardian_email }}</span>{% else %}<span class="badge warn">{{ _('بلا بريد') }}</span>{% endif %}</td>
 <td>{{ counts.get(s.id, 0) }}</td>
-<td data-value="{{ 'فعّال' if s.is_active else 'موقوف' }}">{% if s.is_active %}<span class="badge ok">فعّال</span>{% else %}<span class="badge bad">موقوف</span>{% endif %}</td>
-<td style="white-space:nowrap"><a class="btn small secondary" href="{{ url_for('students.profile', student_id=s.id) }}">الملف</a>
-{% if has_perm('students.manage') %}<a class="btn small secondary" href="{{ url_for('students.form', student_id=s.id) }}">تعديل</a>{% endif %}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="13" class="muted">لا يوجد طلبة ضمن نطاقك بعد.</td></tr>{% endfor %}
+<td data-value="{{ _('فعّال') if s.is_active else _('موقوف') }}">{% if s.is_active %}<span class="badge ok">{{ _('فعّال') }}</span>{% else %}<span class="badge bad">{{ _('موقوف') }}</span>{% endif %}</td>
+<td style="white-space:nowrap"><a class="btn small secondary" href="{{ url_for('students.profile', student_id=s.id) }}">{{ _('الملف') }}</a>
+{% if has_perm('students.manage') %}<a class="btn small secondary" href="{{ url_for('students.form', student_id=s.id) }}">{{ _('تعديل') }}</a>{% endif %}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="13" class="muted">{{ _('لا يوجد طلبة ضمن نطاقك بعد.') }}</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

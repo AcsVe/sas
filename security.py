@@ -1,6 +1,7 @@
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
+from utils.i18n import _
 
 # Used to spend the same hashing time when the username does not exist,
 # so response timing does not reveal which usernames are valid.
@@ -20,11 +21,11 @@ def password_problems(pw, username=None):
     problems = []
     min_len = current_app.config.get('PASSWORD_MIN_LENGTH', 10)
     if len(pw or '') < min_len:
-        problems.append(f'كلمة المرور يجب ألا تقل عن {min_len} أحرف')
-    if not re.search(r'[A-Za-z؀-ۿ]', pw or ''):
-        problems.append('يجب أن تحتوي كلمة المرور على حرف واحد على الأقل')
+        problems.append(_('كلمة المرور يجب ألا تقل عن {min_len} أحرف', min_len=min_len))
+    if not re.search(_(r'[A-Za-z؀-ۿ]'), pw or ''):
+        problems.append(_('يجب أن تحتوي كلمة المرور على حرف واحد على الأقل'))
     if not re.search(r'\d', pw or ''):
-        problems.append('يجب أن تحتوي كلمة المرور على رقم واحد على الأقل')
+        problems.append(_('يجب أن تحتوي كلمة المرور على رقم واحد على الأقل'))
     if username and pw and username.lower() in pw.lower():
-        problems.append('لا يجوز أن تحتوي كلمة المرور على اسم المستخدم')
+        problems.append(_('لا يجوز أن تحتوي كلمة المرور على اسم المستخدم'))
     return problems

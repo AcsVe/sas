@@ -9,6 +9,7 @@ from tenancy import get_scoped
 from models import Period, TimetableEntry, Section, User, Role, UserRole, WEEKDAYS
 from utils.audit import audit
 from utils.school import int_or_none
+from utils.i18n import _
 
 timetable_bp = Blueprint('timetable', __name__)
 
@@ -26,9 +27,10 @@ def section(section_id):
     sec = get_scoped(Section, section_id)
     if sec is None:
         abort(404)
+    from services.periods import grade_week
     stage = sec.grade.stage
-    periods = Period.query.filter_by(stage_id=stage.id).order_by(Period.weekday, Period.sort_order,
-                                                                 Period.start_time).all()
+    week = grade_week(sec.grade)             # the grade's own periods where it has them, else the stage's
+    periods = [p for d in week.values() for p in d]
     entries = {e.period_id: e for e in TimetableEntry.query.filter_by(section_id=sec.id).all()}
     if request.method == 'POST':
         teachers = {u.id: u for u in _teachers()}
@@ -55,10 +57,10 @@ def section(section_id):
                 changed += 1
         audit('timetable.saved', 'section', sec.id, changes=changed)
         db.session.commit()
-        flash(f'حُفظ الجدول ({changed} تغيير)', 'success')
+        flash(_('حُفظ الجدول ({changed} تغيير)', changed=changed), 'success')
         return redirect(url_for('timetable.section', section_id=sec.id))
     days = [(d, n) for d, n in WEEKDAYS if d in stage.day_list]
-    by_day = {d: [p for p in periods if p.weekday == d] for d, _ in days}
+    by_day = week
     return render_template('timetable/section.html', sec=sec, days=days, by_day=by_day, entries=entries,
                            teachers=_teachers())
 
@@ -68,7 +70,7 @@ def section(section_id):
 def mine():
     rows = TimetableEntry.query.filter_by(teacher_user_id=g.user.id).all()
     periods = {p.id: p for p in Period.query.filter(Period.id.in_([e.period_id for e in rows] or [0])).all()}
-    rows.sort(key=lambda e: ([d for d, _ in WEEKDAYS].index(periods[e.period_id].weekday),
+    rows.sort(key=lambda e: ([d for d, _x in WEEKDAYS].index(periods[e.period_id].weekday),
                              periods[e.period_id].start_time))
     sections = {s.id: s for s in Section.query.filter(Section.id.in_([e.section_id for e in rows] or [0])).all()}
     return render_template('timetable/mine.html', rows=rows, periods=periods, sections=sections,

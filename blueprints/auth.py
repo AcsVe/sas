@@ -13,6 +13,7 @@ from security import verify_password, hash_password, password_problems
 from tenancy import set_current_tenant, tenant_bypass
 from utils.audit import audit
 from utils.helpers import client_ip, new_token, hash_token
+from utils.i18n import _
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -71,7 +72,7 @@ def login():
         tenant = g.get('tenant') or resolve_tenant_from_request(request.form.get('org'))
 
         if _ip_blocked():
-            error = 'محاولات دخول كثيرة من هذا الجهاز، حاول لاحقًا'
+            error = _('محاولات دخول كثيرة من هذا الجهاز، حاول لاحقًا')
             _record_attempt(tenant.id if tenant else None, username, False, 'ip_blocked')
             db.session.commit()
             return render_template('auth/login.html', error=error, need_org=need_org), 429
@@ -96,7 +97,7 @@ def login():
             db.session.commit()
             mins = int((user.locked_until - now).total_seconds() // 60) + 1
             return render_template('auth/login.html', need_org=need_org,
-                                   error=f'الحساب مقفل مؤقتًا بسبب محاولات فاشلة. حاول بعد {mins} دقيقة'), 423
+                                   error=_('الحساب مقفل مؤقتًا بسبب محاولات فاشلة. حاول بعد {mins} دقيقة', mins=mins)), 423
 
         if not user or not user.is_active or not verify_password(user.password_hash if user else None,
                                                                  password):
@@ -154,7 +155,7 @@ def forgot():
                     PasswordResetToken.created_at >= utcnow() - timedelta(hours=1)).count()
                 if recent < 3:
                     _issue_reset(user, tenant)
-        flash('إن كان الحساب موجودًا وله بريد مسجّل، فقد أرسلنا رابط إعادة التعيين إليه.', 'info')
+        flash(_('إن كان الحساب موجودًا وله بريد مسجّل، فقد أرسلنا رابط إعادة التعيين إليه.'), 'info')
         return redirect(url_for('auth.login'))
     return render_template('auth/forgot.html', need_org=need_org)
 
@@ -163,7 +164,7 @@ def _issue_reset(user, tenant, by_admin=False):
     base = current_app.config.get('BASE_URL')
     if not base:
         # Links are never built from request headers.
-        raise RuntimeError('BASE_URL غير مضبوط؛ لا يمكن بناء رابط إعادة التعيين')
+        raise RuntimeError(_('BASE_URL غير مضبوط؛ لا يمكن بناء رابط إعادة التعيين'))
     token = new_token()
     db.session.add(PasswordResetToken(
         user_id=user.id, token_hash=hash_token(token),
@@ -171,7 +172,7 @@ def _issue_reset(user, tenant, by_admin=False):
     audit('auth.reset_requested', 'user', user.id, by_admin=by_admin)
     db.session.commit()
     from utils.mail import send_email
-    return send_email([user.email], 'إعادة تعيين كلمة المرور', 'emails/password_reset.html',
+    return send_email([user.email], _('إعادة تعيين كلمة المرور'), 'emails/password_reset.html',
                       tenant, kind='password_reset', entity=('user', user.id),
                       user=user, link=f'{base}/reset/{token}',
                       hours=current_app.config['RESET_TOKEN_HOURS'])
@@ -203,7 +204,7 @@ def reset(token):
         pw, pw2 = request.form.get('password') or '', request.form.get('confirm') or ''
         errors = password_problems(pw, user.username)
         if pw != pw2:
-            errors.append('كلمتا المرور غير متطابقتين')
+            errors.append(_('كلمتا المرور غير متطابقتين'))
         if not errors:
             now = utcnow()
             user.password_hash = hash_password(pw)
@@ -215,7 +216,7 @@ def reset(token):
             audit('auth.password_reset', 'user', user.id, actor=user.full_name)
             db.session.commit()
             session.clear()
-            flash('تم تغيير كلمة المرور. سجّل الدخول بالكلمة الجديدة.', 'success')
+            flash(_('تم تغيير كلمة المرور. سجّل الدخول بالكلمة الجديدة.'), 'success')
             return redirect(url_for('auth.login'))
     return render_template('auth/reset.html', invalid=False, errors=errors)
 
@@ -229,10 +230,10 @@ def change_password():
         cur = request.form.get('current') or ''
         pw, pw2 = request.form.get('password') or '', request.form.get('confirm') or ''
         if not verify_password(user.password_hash, cur):
-            errors.append('كلمة المرور الحالية غير صحيحة')
+            errors.append(_('كلمة المرور الحالية غير صحيحة'))
         errors += password_problems(pw, user.username)
         if pw != pw2:
-            errors.append('كلمتا المرور غير متطابقتين')
+            errors.append(_('كلمتا المرور غير متطابقتين'))
         if not errors:
             user.password_hash = hash_password(pw)
             user.must_change_password = False
@@ -240,6 +241,6 @@ def change_password():
             audit('auth.password_changed', 'user', user.id)
             db.session.commit()
             session['sv'] = user.session_version
-            flash('تم تغيير كلمة المرور', 'success')
+            flash(_('تم تغيير كلمة المرور'), 'success')
             return redirect(url_for('main.home'))
     return render_template('auth/change_password.html', errors=errors)

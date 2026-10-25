@@ -12,6 +12,7 @@ from services import scope
 from services.calendar import approved_holidays, school_days
 from utils.export import xlsx_response
 from utils.school import today, parse_day
+from utils.i18n import _
 
 reports_bp = Blueprint('reports', __name__)
 ABSENCE = ('absent', 'excused')
@@ -98,11 +99,11 @@ def index():
     rows, stages, total, top = summary(d_from, d_to, stage_id)
     if request.args.get('export') == 'xlsx':
         return xlsx_response(f'absence_{d_from}_{d_to}.xlsx',
-                             ['المرحلة', 'الصف', 'الشعبة', 'الطلبة', 'أيام الدوام', 'أيام الغياب', 'منها بعذر',
-                              'التأخر', 'المغادرة المبكرة', 'نسبة الغياب %'],
+                             [_('المرحلة'), _('الصف'), _('الشعبة'), _('الطلبة'), _('أيام الدوام'), _('أيام الغياب'), _('منها بعذر'),
+                              _('التأخر'), _('المغادرة المبكرة'), _('نسبة الغياب %')],
                              [[r['section'].grade.stage.name, r['section'].grade.name, r['section'].name,
                                r['students'], r['days'], r['absent'], r['excused'], r['late'], r['early'], r['rate']]
-                              for r in rows], 'الملخص')
+                              for r in rows], _('الملخص'))
     return render_template('reports/index.html', rows=rows, stages=stages, total=total, top=top, d_from=d_from,
                            d_to=d_to, stage_id=stage_id, all_stages=_stages(),
                            printing=request.args.get('print') == '1')
@@ -117,8 +118,8 @@ def compare():
     span = (b_to - b_from).days
     a_to = parse_day(request.args.get('a_to'), b_from - timedelta(days=1))
     a_from = parse_day(request.args.get('a_from'), a_to - timedelta(days=span))
-    _, sa, ta, _ = summary(a_from, a_to)
-    _, sb, tb, _ = summary(b_from, b_to)
+    _x, sa, ta, _x = summary(a_from, a_to)
+    _x, sb, tb, _x = summary(b_from, b_to)
     a_by = {x['stage'].id: x for x in sa}
     rows = []
     for x in sb:

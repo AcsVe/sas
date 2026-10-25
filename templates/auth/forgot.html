@@ -1,15 +1,15 @@
 {% extends 'auth/_layout.html' %}
-{% block title %}نسيت كلمة المرور{% endblock %}
-{% block heading %}إعادة تعيين كلمة المرور{% endblock %}
+{% block title %}{{ _('نسيت كلمة المرور') }}{% endblock %}
+{% block heading %}{{ _('إعادة تعيين كلمة المرور') }}{% endblock %}
 {% block body %}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {% if need_org %}
-  <div class="field"><label for="org">رمز المنظمة</label><input type="text" id="org" name="org" dir="ltr" required></div>
+  <div class="field"><label for="org">{{ _('رمز المنظمة') }}</label><input type="text" id="org" name="org" dir="ltr" required></div>
   {% endif %}
-  <div class="field"><label for="username">اسم المستخدم أو البريد</label>
+  <div class="field"><label for="username">{{ _('اسم المستخدم أو البريد') }}</label>
     <input type="text" id="username" name="username" dir="ltr" required></div>
-  <button class="btn" type="submit">إرسال رابط إعادة التعيين</button>
+  <button class="btn" type="submit">{{ _('إرسال رابط إعادة التعيين') }}</button>
 </form>
-<div class="links"><a href="{{ url_for('auth.login') }}">العودة لتسجيل الدخول</a></div>
+<div class="links"><a href="{{ url_for('auth.login') }}">{{ _('العودة لتسجيل الدخول') }}</a></div>
 {% endblock %}

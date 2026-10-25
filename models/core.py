@@ -24,6 +24,7 @@ class Tenant(db.Model):
     mail_sender = db.Column(db.String(200))     # overrides MS_SENDER_EMAIL when set
     email_footer = db.Column(db.String(300))
     form_footer = db.Column(db.String(100))        # footer of printed reports
+    ticker_json = db.Column(db.Text)               # the news ticker at the top of every page (JSON, see services/ticker.py)
     ocr_cloud_enabled = db.Column(db.Boolean, default=False, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)

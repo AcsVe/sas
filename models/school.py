@@ -32,6 +32,7 @@ class Semester(TenantScoped, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     year_id = db.Column(db.Integer, db.ForeignKey('academic_years.id', ondelete='CASCADE'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
+    name_en = db.Column(db.String(100))
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
     sort_order = db.Column(db.Integer, default=0, nullable=False)
@@ -71,6 +72,8 @@ class Section(TenantScoped, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     grade_id = db.Column(db.Integer, db.ForeignKey('grades.id'), nullable=False, index=True)
     name = db.Column(db.String(50), nullable=False)
+    name_en = db.Column(db.String(50))
+    homeroom_teacher = db.Column(db.String(200))             # مربي الصف (name as printed on the roster)
     sort_order = db.Column(db.Integer, default=0, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     grade = db.relationship('Grade', back_populates='sections', lazy='joined')
@@ -81,7 +84,8 @@ class Section(TenantScoped, db.Model):
 
     @property
     def full_name(self):
-        return f'{self.grade.name} / {self.name}' if self.grade else self.name
+        from utils.i18n import label
+        return f'{label(self.grade)} / {label(self)}' if self.grade else label(self)
 
 
 class Student(TenantScoped, db.Model):
@@ -158,11 +162,13 @@ class AttendanceRecord(TenantScoped, db.Model):
 
     @property
     def kind_label(self):
-        return dict(RECORD_KINDS).get(self.kind, self.kind)
+        from utils.i18n import _
+        return _(dict(RECORD_KINDS).get(self.kind, self.kind))
 
     @property
     def status_label(self):
-        return dict(STATUSES).get(self.status, self.status)
+        from utils.i18n import _
+        return _(dict(STATUSES).get(self.status, self.status))
 
 
 class Holiday(TenantScoped, db.Model):
@@ -193,13 +199,15 @@ class Holiday(TenantScoped, db.Model):
 
     @property
     def status_label(self):
-        return dict(STATUSES).get(self.status, self.status)
+        from utils.i18n import _
+        return _(dict(STATUSES).get(self.status, self.status))
 
 
 class ClassLeaveType(TenantScoped, db.Model):
     __tablename__ = 'class_leave_types'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    name_en = db.Column(db.String(100))
     needs_return = db.Column(db.Boolean, default=True, nullable=False)   # the student comes back to class
     sort_order = db.Column(db.Integer, default=0, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
@@ -226,7 +234,8 @@ class ClassLeave(TenantScoped, db.Model):
 
     @property
     def status_label(self):
-        return dict(STATUSES).get(self.status, self.status)
+        from utils.i18n import _
+        return _(dict(STATUSES).get(self.status, self.status))
 
     @property
     def is_out(self):
@@ -235,14 +244,18 @@ class ClassLeave(TenantScoped, db.Model):
 
 
 class Period(TenantScoped, db.Model):
-    """The bell periods of a stage for one weekday (SASPeriod)."""
+    """The bell periods of one weekday. grade_id empty = the stage's default day; a grade's own rows for that
+    weekday replace the stage's day for that grade only (as the bell programs do: grade 4 and grades 5–6 of
+    one stage ring at different times)."""
     __tablename__ = 'periods'
     id = db.Column(db.Integer, primary_key=True)
     stage_id = db.Column(db.Integer, db.ForeignKey('stages.id', ondelete='CASCADE'), nullable=False, index=True)
+    grade_id = db.Column(db.Integer, db.ForeignKey('grades.id', ondelete='CASCADE'), index=True)
     weekday = db.Column(db.Integer, nullable=False)              # Python weekday (Mon=0 … Sun=6)
     sort_order = db.Column(db.Integer, default=0, nullable=False)
     kind = db.Column(db.String(10), default='period', nullable=False)   # period / break
     label = db.Column(db.String(100), nullable=False)
+    label_en = db.Column(db.String(100))
     start_time = db.Column(db.String(5), nullable=False)
     end_time = db.Column(db.String(5), nullable=False)
 

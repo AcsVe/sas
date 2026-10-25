@@ -1,27 +1,27 @@
 {% extends 'base.html' %}
-{% block title %}الإعدادات{% endblock %}
+{% block title %}{{ _('الإعدادات') }}{% endblock %}
 {% block content %}
-<h1>إعدادات المنظمة</h1>
+<h1>{{ _('إعدادات المنظمة') }}</h1>
 <div class="card"><form method="post" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row">
-    <div><label>الاسم بالعربية</label><input type="text" name="name_ar" value="{{ t.name_ar }}" required></div>
-    <div><label>الاسم بالإنجليزية</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
-    <div><label>اللون الأساسي</label><input type="text" name="accent_color" value="{{ t.accent_color }}" dir="ltr"></div>
+    <div><label>{{ _('الاسم بالعربية') }}</label><input type="text" name="name_ar" value="{{ t.name_ar }}" required></div>
+    <div><label>{{ _('الاسم بالإنجليزية') }}</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
+    <div><label>{{ _('اللون الأساسي') }}</label><input type="text" name="accent_color" value="{{ t.accent_color }}" dir="ltr"></div>
   </div>
   <div class="row">
-    <div><label>بريد المرسل (اختياري)</label><input type="email" name="mail_sender" value="{{ t.mail_sender or '' }}" dir="ltr">
-      <p class="hint">إن ترك فارغًا يُستخدم MS_SENDER_EMAIL من config.env.</p></div>
-    <div><label>تذييل البريد</label><input type="text" name="email_footer" value="{{ t.email_footer or '' }}"></div>
-    <div><label>تذييل التقارير المطبوعة</label><input type="text" name="form_footer" value="{{ t.form_footer or '' }}"></div>
+    <div><label>{{ _('بريد المرسل (اختياري)') }}</label><input type="email" name="mail_sender" value="{{ t.mail_sender or '' }}" dir="ltr">
+      <p class="hint">{{ _('إن ترك فارغًا يُستخدم MS_SENDER_EMAIL من config.env.') }}</p></div>
+    <div><label>{{ _('تذييل البريد') }}</label><input type="text" name="email_footer" value="{{ t.email_footer or '' }}"></div>
+    <div><label>{{ _('تذييل التقارير المطبوعة') }}</label><input type="text" name="form_footer" value="{{ t.form_footer or '' }}"></div>
   </div>
   <div class="row">
-    <div><label>الشعار الأول</label><input type="file" name="logo_primary" accept="image/png,image/jpeg,image/webp">
+    <div><label>{{ _('الشعار الأول') }}</label><input type="file" name="logo_primary" accept="image/png,image/jpeg,image/webp">
       <img src="{{ url_for('tenant_logo', tenant_id=t.id, which='primary') }}" alt="" style="height:50px;margin-top:6px"></div>
-    <div><label>الشعار الثاني</label><input type="file" name="logo_secondary" accept="image/png,image/jpeg,image/webp">
+    <div><label>{{ _('الشعار الثاني') }}</label><input type="file" name="logo_secondary" accept="image/png,image/jpeg,image/webp">
       {% if t.logo_secondary %}<img src="{{ url_for('tenant_logo', tenant_id=t.id, which='secondary') }}" alt="" style="height:50px;margin-top:6px">{% endif %}</div>
   </div>
-  <button class="btn" type="submit">حفظ</button>
+  <button class="btn" type="submit">{{ _('حفظ') }}</button>
 </form></div>
 
 {% endblock %}

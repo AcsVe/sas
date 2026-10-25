@@ -9,6 +9,7 @@ from extensions import db
 from models.core import utcnow
 from utils.helpers import split_emails
 from utils.mail import send_email
+from utils.i18n import _, force_lang
 
 
 def plan(records, resend=False):
@@ -28,29 +29,33 @@ def plan(records, resend=False):
 
 
 def _facts(r):
-    when = 'طوال اليوم' if r.all_day else ' – '.join(t for t in (r.time_from, r.time_to) if t)
+    when = _('طوال اليوم') if r.all_day else ' – '.join(t for t in (r.time_from, r.time_to) if t)
     return (r.kind_label, f'{r.record_date.isoformat()} ({when})' if when else r.record_date.isoformat())
 
 
 def send(p):
-    """→ (sent_students, failed: [(student name, error)])."""
+    """→ (sent_students, failed: [(student name, error)]). The guardians' e-mail is always in Arabic."""
+    with force_lang('ar'):
+        return _send(p)
+
+
+def _send(p):
     tenant = g.tenant
     sent, failed = 0, []
     for recs in p['groups']:
         st = recs[0].student
         dates = sorted({r.record_date for r in recs})
-        subject = f'إشعار غياب: {st.full_name} — {dates[0].isoformat()}' + \
-            (f' إلى {dates[-1].isoformat()}' if len(dates) > 1 else '')
+        subject = _('إشعار غياب: {full_name} — {v}', full_name=st.full_name, v=dates[0].isoformat()) + \
+            (_(' إلى {v}', v=dates[-1].isoformat()) if len(dates) > 1 else '')
         res = send_email(
             st.guardian_email, subject, 'emails/notice.html', tenant, kind='guardian_absence',
             entity=('student', st.id),
-            heading='إشعار من المدرسة بغياب الطالب أو تأخره',
-            greeting=st.guardian_name or 'ولي أمر الطالب',
-            paragraphs=[f'نحيطكم علمًا بما سُجّل للطالب {st.full_name} '
-                        f'في {st.section.grade.name} / الشعبة {st.section.name}:'],
+            heading=_('إشعار من المدرسة بغياب الطالب أو تأخره'),
+            greeting=st.guardian_name or _('ولي أمر الطالب'),
+            paragraphs=[_('نحيطكم علمًا بما سُجّل للطالب {full_name} في {name} / الشعبة {name2}:', full_name=st.full_name, name=st.section.grade.name, name2=st.section.name)],
             items=[_facts(r) for r in recs], items_color='#1e3a8a',
-            note='نرجو التواصل مع إدارة المدرسة إن كان لديكم عذر أو استفسار.', note_label='ملاحظة',
-            after=['هذه رسالة آلية من نظام غياب الطلبة؛ يُرجى عدم الرد عليها.'])
+            note=_('نرجو التواصل مع إدارة المدرسة إن كان لديكم عذر أو استفسار.'), note_label=_('ملاحظة'),
+            after=[_('هذه رسالة آلية من نظام غياب الطلبة؛ يُرجى عدم الرد عليها.')])
         if res:
             now = utcnow()
             for r in recs:

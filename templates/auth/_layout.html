@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ lang }}" dir="{{ dir }}">
 <head>{% include '_head.html' %}<title>{% block title %}{% endblock %}</title></head>
 <body>
+{% if ticker_view %}{% from '_ticker.html' import ticker %}{{ ticker(ticker_view, ticker_logo) }}{% endif %}
 <div class="auth-wrap"><div class="auth-card">
+  <div class="auth-lang">{% include '_lang.html' %}</div>
   <div class="logos">
     {% if current_tenant %}
       <img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='primary') }}" alt="">
@@ -10,7 +12,7 @@
     {% else %}<img src="{{ url_for('static', filename='logo.png') }}" alt="">{% endif %}
   </div>
   <h1>{% block heading %}{% endblock %}</h1>
-  <p class="sub">{{ current_tenant.name_ar if current_tenant else 'نظام غياب الطلبة والاستئذان' }}</p>
+  <p class="sub">{{ pick(current_tenant.name_ar, current_tenant.name_en) if current_tenant else _('نظام غياب الطلبة والاستئذان') }}</p>
   {% include '_flash.html' %}
   {% block body %}{% endblock %}
 </div></div>

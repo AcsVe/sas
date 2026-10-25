@@ -1,20 +1,20 @@
 {% macro holiday_fields(h, choices, scopes, sees_all) %}
 {% set ids = h.ids if h.scope_ids is defined and h.scope_ids is not none else [] %}
 <div class="row">
-  <div><label>العنوان *</label><input type="text" name="title" value="{{ h.title or '' }}" required placeholder="مثل عطلة عيد المولد النبوي"></div>
-  <div><label>من تاريخ *</label><input type="date" name="start_date" value="{{ h.start_date.isoformat() if h.start_date else '' }}" required></div>
-  <div><label>إلى تاريخ</label><input type="date" name="end_date" value="{{ h.end_date.isoformat() if h.end_date else '' }}"></div>
+  <div><label>{{ _('العنوان *') }}</label><input type="text" name="title" value="{{ h.title or '' }}" required placeholder="{{ _('مثل عطلة عيد المولد النبوي') }}"></div>
+  <div><label>{{ _('من تاريخ *') }}</label><input type="date" name="start_date" value="{{ h.start_date.isoformat() if h.start_date else '' }}" required></div>
+  <div><label>{{ _('إلى تاريخ') }}</label><input type="date" name="end_date" value="{{ h.end_date.isoformat() if h.end_date else '' }}"></div>
 </div>
-<label>النطاق</label>
+<label>{{ _('النطاق') }}</label>
 <div class="choice" data-switch="scope">{% for k, l in scopes %}{% if k != 'school' or sees_all %}
-  <label><input type="radio" name="scope_type" value="{{ k }}" {% if (h.scope_type or ('school' if sees_all else 'stages')) == k %}checked{% endif %}> {{ l }}</label>
+  <label><input type="radio" name="scope_type" value="{{ k }}" {% if (h.scope_type or ('school' if sees_all else 'stages')) == k %}checked{% endif %}> {{ _(l) }}</label>
 {% endif %}{% endfor %}</div>
-{% for k, label in [('stages', 'المراحل'), ('grades', 'الصفوف'), ('sections', 'الشعب')] %}
-<fieldset class="scope-pick" data-show-when="scope_type={{ k }}"><legend>{{ label }}</legend>
+{% for k, lab in [('stages', 'المراحل'), ('grades', 'الصفوف'), ('sections', 'الشعب')] %}
+<fieldset class="scope-pick" data-show-when="scope_type={{ k }}"><legend>{{ _(lab) }}</legend>
   <div class="dept-checks">{% for o in choices[k] %}
     <label class="checks"><input type="checkbox" name="scope_ids_{{ k }}" value="{{ o.id }}" {% if h.scope_type == k and o.id in ids %}checked{% endif %}>
-      {% if k == 'sections' %}{{ o.grade.stage.name }} — {{ o.full_name }}{% elif k == 'grades' %}{{ o.stage.name }} — {{ o.name }}{% else %}{{ o.name }}{% endif %}</label>
-  {% else %}<span class="muted">لا يوجد</span>{% endfor %}</div>
+      {% if k == 'sections' %}{{ label(o.grade.stage) }} — {{ o.full_name }}{% elif k == 'grades' %}{{ label(o.stage) }} — {{ label(o) }}{% else %}{{ label(o) }}{% endif %}</label>
+  {% else %}<span class="muted">{{ _('لا يوجد') }}</span>{% endfor %}</div>
 </fieldset>
 {% endfor %}
 {% endmacro %}

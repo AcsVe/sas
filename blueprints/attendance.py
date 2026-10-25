@@ -18,11 +18,16 @@ from services import scope, notify
 from services.calendar import holiday_for, approved_holidays
 from utils.audit import audit
 from utils.export import xlsx_response
+from utils.i18n import _
 from utils.school import (today, form_ids, int_or_none, parse_day, clean_time, save_attachment,
                           delete_attachment_file, attachment_dir)
 
 attendance_bp = Blueprint('attendance', __name__)
-KIND_KEYS = [k for k, _ in RECORD_KINDS]
+
+
+class Duplicate(str):
+    """The error «already recorded» (the daily sheet skips these students)."""
+KIND_KEYS = [k for k, _x in RECORD_KINDS]
 
 
 def _sections():
@@ -48,23 +53,23 @@ def _apply(rec, data):
     errors = []
     kind = data.get('kind') or 'absent'
     if kind not in KIND_KEYS:
-        errors.append('نوع السجل غير صالح')
+        errors.append(_('نوع السجل غير صالح'))
     day = parse_day(data.get('record_date'))
     if day is None:
-        errors.append('التاريخ مطلوب (الصيغة 2026-12-31)')
+        errors.append(_('التاريخ مطلوب (الصيغة 2026-12-31)'))
     all_day = data.get('all_day', '1') == '1'
     t_from, t_to = clean_time(data.get('time_from')), clean_time(data.get('time_to'))
     if not all_day and not t_from:
-        errors.append('حدّد الوقت، أو اختر «طوال اليوم»')
+        errors.append(_('حدّد الوقت، أو اختر «طوال اليوم»'))
     if t_from and t_to and t_to <= t_from:
-        errors.append('وقت النهاية يجب أن يكون بعد وقت البداية')
+        errors.append(_('وقت النهاية يجب أن يكون بعد وقت البداية'))
     if errors:
         return errors
     dup = AttendanceRecord.query.filter(AttendanceRecord.student_id == rec.student_id,
                                         AttendanceRecord.record_date == day, AttendanceRecord.kind == kind,
                                         AttendanceRecord.id != (rec.id or 0)).first()
     if dup:
-        return [f'يوجد سجل «{dup.kind_label}» للطالب في {day.isoformat()}']
+        return [Duplicate(_('يوجد سجل «{kind_label}» للطالب في {v}', kind_label=dup.kind_label, v=day.isoformat()))]
     rec.kind, rec.record_date, rec.all_day = kind, day, all_day
     rec.time_from, rec.time_to = (None, None) if all_day else (t_from, t_to)
     rec.notes = (data.get('notes') or '').strip()[:1000] or None
@@ -98,7 +103,7 @@ def daily():
                                 'time_from': request.form.get('time_from'), 'time_to': request.form.get('time_to'),
                                 'notes': request.form.get('notes')})
             if errs:
-                if errs[0].startswith('يوجد سجل'):
+                if isinstance(errs[0], Duplicate):
                     dup += 1
                     continue
                 errors = errs
@@ -113,7 +118,7 @@ def daily():
         else:
             audit('attendance.daily', 'section', section.id, date=day.isoformat(), kind=kind, count=made)
             db.session.commit()
-            msg = f'سُجّل {made}' + (f' — {dup} مسجّل مسبقًا' if dup else '')
+            msg = _('سُجّل {made}', made=made) + (_(' — {dup} مسجّل مسبقًا', dup=dup) if dup else '')
             flash(msg, 'success' if made else 'warning')
         return redirect(url_for('attendance.daily', section=section.id, date=day.isoformat()))
     students, existing, holiday, leaves_out = [], {}, None, {}
@@ -167,15 +172,15 @@ def records():
     rows = q.all()
     if request.args.get('export') == 'xlsx':
         return xlsx_response('attendance.xlsx',
-                             ['التاريخ', 'الطالب', 'رقم الطالب', 'المرحلة', 'الصف', 'الشعبة', 'النوع', 'الوقت',
-                              'الحالة', 'ملاحظات', 'سجّله', 'إشعار ولي الأمر'],
+                             [_('التاريخ'), _('الطالب'), _('رقم الطالب'), _('المرحلة'), _('الصف'), _('الشعبة'), _('النوع'), _('الوقت'),
+                              _('الحالة'), _('ملاحظات'), _('سجّله'), _('إشعار ولي الأمر')],
                              [[r.record_date.isoformat(), r.student.full_name, r.student.student_number,
                                r.student.section.grade.stage.name, r.student.section.grade.name,
                                r.student.section.name, r.kind_label,
-                               'طوال اليوم' if r.all_day else f'{r.time_from or ""} {r.time_to or ""}'.strip(),
+                               _('طوال اليوم') if r.all_day else f'{r.time_from or ""} {r.time_to or ""}'.strip(),
                                r.status_label, r.notes, r.creator.full_name if r.creator else '',
                                r.notified_at.strftime('%Y-%m-%d %H:%M') if r.notified_at else ''] for r in rows],
-                             'السجلات')
+                             _('السجلات'))
     return render_template('attendance/records.html', rows=rows, d_from=d_from, d_to=d_to, kinds=RECORD_KINDS,
                            statuses=STATUSES, sections=_sections(), args=request.args)
 
@@ -202,7 +207,7 @@ def records_bulk():
     elif action == 'delete':
         for r in picked:
             if r.status == 'approved' and not has_perm('attendance.approve'):
-                skipped.append(f'{r.student.full_name} (معتمد — يحذفه من يملك الاعتماد)')
+                skipped.append(_('{full_name} (معتمد — يحذفه من يملك الاعتماد)', full_name=r.student.full_name))
                 continue
             att = r.attachment
             audit('attendance.deleted', 'attendance', r.id, student=r.student_id, date=r.record_date.isoformat())
@@ -216,8 +221,8 @@ def records_bulk():
     if action != 'delete':
         audit(f'attendance.bulk_{action}', count=done)
     db.session.commit()
-    verb = {'approve': 'اعتُمد', 'reject': 'رُفض', 'delete': 'حُذف'}[action]
-    flash(f'{verb}: {done}' + ((' — تُرك: ' + '، '.join(skipped[:10])) if skipped else ''),
+    verb = {'approve': _('اعتُمد'), 'reject': _('رُفض'), 'delete': _('حُذف')}[action]
+    flash(f'{verb}: {done}' + ((_(' — تُرك: ') + _('، ').join(skipped[:10])) if skipped else ''),
           'success' if done else 'warning')
     return redirect(back)
 
@@ -237,7 +242,7 @@ def record_form(rec_id=None):
         rec = AttendanceRecord(student_id=student.id, record_date=parse_day(request.args.get('date'), today()),
                                kind=request.args.get('kind') or 'absent', all_day=True)
     if rec_id and rec.status == 'approved' and not has_perm('attendance.approve'):
-        flash('السجل معتمد؛ يعدّله من يملك صلاحية الاعتماد', 'warning')
+        flash(_('السجل معتمد؛ يعدّله من يملك صلاحية الاعتماد'), 'warning')
         return redirect(url_for('students.profile', student_id=student.id))
     errors = []
     if request.method == 'POST':
@@ -266,7 +271,7 @@ def record_form(rec_id=None):
             audit('attendance.created' if not rec_id else 'attendance.updated', 'attendance', rec.id,
                   student=student.id, kind=rec.kind, date=rec.record_date.isoformat())
             db.session.commit()
-            flash('تم الحفظ', 'success')
+            flash(_('تم الحفظ'), 'success')
             return redirect(request.form.get('next') or url_for('students.profile', student_id=student.id))
         db.session.rollback()
         if rec_id:
@@ -321,11 +326,11 @@ def notify_send():
     audit('guardians.notified', count=sent, failed=len(failed))
     db.session.commit()
     if sent:
-        flash(f'أُرسل الإشعار إلى أولياء أمور {sent} من الطلبة', 'success')
+        flash(_('أُرسل الإشعار إلى أولياء أمور {sent} من الطلبة', sent=sent), 'success')
     for name, err in failed[:10]:
-        flash(f'تعذّر الإرسال لولي أمر {name}: {err}', 'danger')
+        flash(_('تعذّر الإرسال لولي أمر {name}: {err}', name=name, err=err), 'danger')
     if not sent and not failed:
-        flash('لا يوجد ما يُرسل (الكل بلا بريد أو أُشعر مسبقًا)', 'warning')
+        flash(_('لا يوجد ما يُرسل (الكل بلا بريد أو أُشعر مسبقًا)'), 'warning')
     return redirect(url_for('attendance.records', notified='0' if failed else None))
 
 

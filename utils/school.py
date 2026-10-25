@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from flask import current_app, request, g, abort
 
 from extensions import db
+from utils.i18n import _
 
 ALLOWED_EXT = {'.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.doc', '.docx'}
 
@@ -73,7 +74,7 @@ def save_attachment(file_storage):
     name = os.path.basename(file_storage.filename)
     ext = os.path.splitext(name)[1].lower()
     if ext not in ALLOWED_EXT:
-        raise ValueError('نوع المرفق غير مسموح — المسموح: PDF أو صورة أو Word')
+        raise ValueError(_('نوع المرفق غير مسموح — المسموح: PDF أو صورة أو Word'))
     stored = f'{uuid.uuid4().hex}{ext}'
     path = os.path.join(attachment_dir(), stored)
     file_storage.save(path)

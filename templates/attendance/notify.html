@@ -1,45 +1,45 @@
 {% extends 'base.html' %}
-{% block title %}إشعار أولياء الأمور{% endblock %}
+{% block title %}{{ _('إشعار أولياء الأمور') }}{% endblock %}
 {% block content %}
-<h1>إشعار أولياء الأمور بالبريد</h1>
-<p class="muted" style="margin-bottom:12px">راجع القائمة قبل الإرسال. تُرسل رسالة واحدة لكل طالب عبر بريد المدرسة (Microsoft Graph)، وتُسجَّل كل محاولة في سجل البريد.</p>
+<h1>{{ _('إشعار أولياء الأمور بالبريد') }}</h1>
+<p class="muted" style="margin-bottom:12px">{{ _('راجع القائمة قبل الإرسال. تُرسل رسالة واحدة لكل طالب عبر بريد المدرسة (Microsoft Graph)، وتُسجَّل كل محاولة في سجل البريد.') }}</p>
 <div class="kpis">
-  <a class="kpi ok" href="#to-send"><div class="n">{{ plan.groups|length }}</div><div class="l">سيُرسل إليهم</div></a>
-  <a class="kpi {{ 'warn' if plan.no_email else 'zero' }}" href="#no-email"><div class="n">{{ plan.no_email|length }}</div><div class="l">بلا بريد لولي الأمر</div><small>أكمل بياناتهم من ملف الطالب</small></a>
-  <a class="kpi {{ 'zero' if not plan.already else '' }}" href="#already"><div class="n">{{ plan.already|length }}</div><div class="l">أُشعروا مسبقًا</div><small>{{ 'ستُعاد مراسلتهم' if resend else 'لن يُعاد الإرسال لهم' }}</small></a>
+  <a class="kpi ok" href="#to-send"><div class="n">{{ plan.groups|length }}</div><div class="l">{{ _('سيُرسل إليهم') }}</div></a>
+  <a class="kpi {{ 'warn' if plan.no_email else 'zero' }}" href="#no-email"><div class="n">{{ plan.no_email|length }}</div><div class="l">{{ _('بلا بريد لولي الأمر') }}</div><small>{{ _('أكمل بياناتهم من ملف الطالب') }}</small></a>
+  <a class="kpi {{ 'zero' if not plan.already else '' }}" href="#already"><div class="n">{{ plan.already|length }}</div><div class="l">{{ _('أُشعروا مسبقًا') }}</div><small>{{ _('ستُعاد مراسلتهم') if resend else _('لن يُعاد الإرسال لهم') }}</small></a>
 </div>
 
 <form method="post" action="{{ url_for('attendance.notify_send') }}" class="card">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {% for i in ids %}<input type="hidden" name="ids" value="{{ i }}">{% endfor %}
-  <div class="checks" style="margin-bottom:10px"><label><input type="checkbox" name="resend" value="1" {% if resend %}checked{% endif %}> إعادة الإرسال لمن أُشعر مسبقًا</label></div>
-  <button class="btn" type="submit" {% if not plan.groups and not plan.already %}disabled{% endif %} data-confirm="إرسال الإشعار إلى أولياء أمور {{ plan.groups|length }} من الطلبة؟">✉ إرسال</button>
-  <button class="btn secondary" type="submit" name="preview" value="1">تحديث القائمة</button>
-  <a class="btn secondary" href="{{ url_for('attendance.records') }}">إلغاء</a>
+  <div class="checks" style="margin-bottom:10px"><label><input type="checkbox" name="resend" value="1" {% if resend %}checked{% endif %}> {{ _('إعادة الإرسال لمن أُشعر مسبقًا') }}</label></div>
+  <button class="btn" type="submit" {% if not plan.groups and not plan.already %}disabled{% endif %} data-confirm="{{ _('إرسال الإشعار إلى أولياء أمور') }} {{ plan.groups|length }} {{ _('من الطلبة؟') }}">✉ {{ _('إرسال') }}</button>
+  <button class="btn secondary" type="submit" name="preview" value="1">{{ _('تحديث القائمة') }}</button>
+  <a class="btn secondary" href="{{ url_for('attendance.records') }}">{{ _('إلغاء') }}</a>
 </form>
 
-<h2 id="to-send">سيُرسل إليهم</h2>
+<h2 id="to-send">{{ _('سيُرسل إليهم') }}</h2>
 <div class="card table-wrap"><table data-table id="t-send">
-<thead><tr><th data-filter="text">الطالب</th><th data-filter="select">الشعبة</th><th data-filter="text">البريد</th><th>السجلات</th></tr></thead>
+<thead><tr><th data-filter="text">{{ _('الطالب') }}</th><th data-filter="select">{{ _('الشعبة') }}</th><th data-filter="text">{{ _('البريد') }}</th><th>{{ _('السجلات') }}</th></tr></thead>
 <tbody>{% for recs in plan.groups %}{% set st = recs[0].student %}
 <tr><td>{{ st.full_name }}</td><td>{{ st.section.full_name }}</td><td class="mono">{{ st.guardian_email }}</td>
-<td>{% for r in recs %}<span class="badge">{{ r.kind_label }} {{ r.record_date }}</span> {% endfor %}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="4" class="muted">لا أحد</td></tr>{% endfor %}</tbody></table></div>
+<td>{% for r in recs %}<span class="badge">{{ _(r.kind_label) }} {{ r.record_date }}</span> {% endfor %}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="4" class="muted">{{ _('لا أحد') }}</td></tr>{% endfor %}</tbody></table></div>
 
-<h2 id="no-email">بلا بريد لولي الأمر</h2>
+<h2 id="no-email">{{ _('بلا بريد لولي الأمر') }}</h2>
 <div class="card table-wrap"><table data-table id="t-noemail">
-<thead><tr><th data-filter="text">الطالب</th><th data-filter="select">الشعبة</th><th>هاتف ولي الأمر</th><th>السجل</th><th data-nosort></th></tr></thead>
+<thead><tr><th data-filter="text">{{ _('الطالب') }}</th><th data-filter="select">{{ _('الشعبة') }}</th><th>{{ _('هاتف ولي الأمر') }}</th><th>{{ _('السجل') }}</th><th data-nosort></th></tr></thead>
 <tbody>{% for r in plan.no_email %}
 <tr><td>{{ r.student.full_name }}</td><td>{{ r.student.section.full_name }}</td><td class="mono">{{ r.student.guardian_phone or '—' }}</td>
-<td>{{ r.kind_label }} {{ r.record_date }}</td>
-<td>{% if has_perm('students.manage') %}<a class="btn small secondary" href="{{ url_for('students.form', student_id=r.student.id) }}">إضافة البريد</a>{% endif %}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="5" class="muted">لا أحد</td></tr>{% endfor %}</tbody></table></div>
+<td>{{ _(r.kind_label) }} {{ r.record_date }}</td>
+<td>{% if has_perm('students.manage') %}<a class="btn small secondary" href="{{ url_for('students.form', student_id=r.student.id) }}">{{ _('إضافة البريد') }}</a>{% endif %}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="5" class="muted">{{ _('لا أحد') }}</td></tr>{% endfor %}</tbody></table></div>
 
-<h2 id="already">أُشعروا مسبقًا</h2>
+<h2 id="already">{{ _('أُشعروا مسبقًا') }}</h2>
 <div class="card table-wrap"><table data-table id="t-already">
-<thead><tr><th data-filter="text">الطالب</th><th>السجل</th><th>وقت الإشعار</th><th>المرات</th></tr></thead>
+<thead><tr><th data-filter="text">{{ _('الطالب') }}</th><th>{{ _('السجل') }}</th><th>{{ _('وقت الإشعار') }}</th><th>{{ _('المرات') }}</th></tr></thead>
 <tbody>{% for r in plan.already %}
-<tr><td>{{ r.student.full_name }}</td><td>{{ r.kind_label }} {{ r.record_date }}</td>
+<tr><td>{{ r.student.full_name }}</td><td>{{ _(r.kind_label) }} {{ r.record_date }}</td>
 <td class="mono">{{ r.notified_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ r.notified_count }}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="4" class="muted">لا أحد</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<tr class="empty-row"><td colspan="4" class="muted">{{ _('لا أحد') }}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}

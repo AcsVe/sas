@@ -1,28 +1,28 @@
 {% extends 'base.html' %}
-{% block title %}الأقسام{% endblock %}
+{% block title %}{{ _('الأقسام') }}{% endblock %}
 {% block content %}
-<div class="toolbar"><h1>الأقسام <span class="count-pill" data-count-for="t-depts">{{ departments|length }}</span></h1>
-  <a class="btn" href="{{ url_for('admin.department_form') }}">+ قسم جديد</a></div>
-<div class="list-tools"><input type="search" data-list-search="t-depts" placeholder="بحث في الأقسام" aria-label="بحث"></div>
+<div class="toolbar"><h1>{{ _('الأقسام') }} <span class="count-pill" data-count-for="t-depts">{{ departments|length }}</span></h1>
+  <a class="btn" href="{{ url_for('admin.department_form') }}">+ {{ _('قسم جديد') }}</a></div>
+<div class="list-tools"><input type="search" data-list-search="t-depts" placeholder="{{ _('بحث في الأقسام') }}" aria-label="{{ _('بحث') }}"></div>
 <form class="bulk-bar" method="post" action="{{ url_for('admin.departments_bulk') }}" data-bulk-for="t-depts">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <span>المحدد: <b data-selected-count>0</b></span>
-  <button class="btn small ok" name="action" value="activate">تفعيل</button>
-  <button class="btn small secondary" name="action" value="deactivate" data-confirm="إيقاف {n} من الأقسام؟ لن تصلها نماذج جديدة.">إيقاف</button>
-  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من الأقسام نهائيًا؟ الأقسام المرتبطة بسجلات تُترك ويُكتفى بإيقافها.">حذف</button>
+  <span>{{ _('المحدد:') }} <b data-selected-count>0</b></span>
+  <button class="btn small ok" name="action" value="activate">{{ _('تفعيل') }}</button>
+  <button class="btn small secondary" name="action" value="deactivate" data-confirm="{{ _('إيقاف') }} {n} {{ _('من الأقسام؟ لن تصلها نماذج جديدة.') }}">{{ _('إيقاف') }}</button>
+  <button class="btn small danger" name="action" value="delete" data-confirm="{{ _('حذف') }} {n} {{ _('من الأقسام نهائيًا؟ الأقسام المرتبطة بسجلات تُترك ويُكتفى بإيقافها.') }}">{{ _('حذف') }}</button>
 </form>
 <div class="card table-wrap"><table data-table id="t-depts">
-<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
-<th data-filter="text">القسم</th><th data-filter="text">الكود</th><th data-filter="select">النوع</th><th data-filter="text">المسؤول</th>
-<th data-filter="text">البريد</th><th data-filter="select">الحالة</th><th data-sort="num">الترتيب</th><th data-nosort></th></tr></thead>
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="{{ _('تحديد الكل') }}"></th>
+<th data-filter="text">{{ _('القسم') }}</th><th data-filter="text">{{ _('الكود') }}</th><th data-filter="select">{{ _('النوع') }}</th><th data-filter="text">{{ _('المسؤول') }}</th>
+<th data-filter="text">{{ _('البريد') }}</th><th data-filter="select">{{ _('الحالة') }}</th><th data-sort="num">{{ _('الترتيب') }}</th><th data-nosort></th></tr></thead>
 <tbody>
 {% for d in departments %}
-<tr data-id="{{ d.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ d.id }}" aria-label="تحديد {{ d.name }}"></td>
-<td>{{ d.icon }} {{ d.name }}</td><td class="mono">{{ d.code }}</td><td>{{ types[d.dept_type] }}</td>
+<tr data-id="{{ d.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ d.id }}" aria-label="{{ _('تحديد') }} {{ d.name }}"></td>
+<td>{{ d.icon }} {{ d.name }}</td><td class="mono">{{ d.code }}</td><td>{{ _(types[d.dept_type]) }}</td>
 <td>{{ d.manager_name or '—' }}</td><td class="mono">{{ d.emails or '—' }}</td>
-<td data-value="{{ 'فعّال' if d.is_active else 'متوقف' }}">{% if d.is_active %}<span class="badge ok">فعّال</span>{% else %}<span class="badge bad">متوقف</span>{% endif %}</td>
+<td data-value="{{ _('فعّال') if d.is_active else _('متوقف') }}">{% if d.is_active %}<span class="badge ok">{{ _('فعّال') }}</span>{% else %}<span class="badge bad">{{ _('متوقف') }}</span>{% endif %}</td>
 <td class="mono">{{ d.sort_order }}</td>
-<td><a class="btn small secondary" href="{{ url_for('admin.department_form', dept_id=d.id) }}">تعديل</a></td></tr>
-{% else %}<tr class="empty-row"><td colspan="9" class="muted">لا توجد أقسام</td></tr>{% endfor %}
+<td><a class="btn small secondary" href="{{ url_for('admin.department_form', dept_id=d.id) }}">{{ _('تعديل') }}</a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="9" class="muted">{{ _('لا توجد أقسام') }}</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

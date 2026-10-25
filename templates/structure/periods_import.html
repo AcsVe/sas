@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}{{ _('استيراد الحصص والأوقات') }}{% endblock %}
+{% block content %}
+{% include 'structure/_tabs.html' %}
+<div class="toolbar">
+  <h1>{{ _('استيراد الحصص والأوقات') }}</h1>
+  <a class="btn secondary small" href="{{ url_for('structure.items', key='periods') }}">{{ _('الحصص') }}</a>
+</div>
+{% if not plan %}
+<div class="grid2">
+<form class="card" method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>{{ _('ملف الحصص') }}</label>
+  <input type="file" name="file" accept=".xlsx,.xlsm,.csv" required>
+  <button class="btn" type="submit" style="margin-top:12px">{{ _('معاينة') }}</button>
+  <p class="hint">{{ _('لا يُحفظ شيء قبل الضغط على «تنفيذ» في صفحة المعاينة.') }}</p>
+</form>
+<div class="card">
+  <h2 style="margin-top:0">{{ _('من نظام الجرس') }}</h2>
+  <ol class="plain">
+    <li>{{ _('في نظام الجرس (⁦5.iajaward.org⁩): برامج الجرس ← «تصدير الحصص لنظام الغياب».') }}</li>
+    <li>{{ _('ارفع الملف هنا: يُطابق المراحل بأسمائها والصفوف بأرقامها.') }}</li>
+    <li>{{ _('للصف الذي يختلف توقيته عن مرحلته (كالصف الرابع) تُحفظ حصص خاصة به تحل محل حصص المرحلة في ذلك اليوم.') }}</li>
+  </ol>
+  <p class="hint">{{ _('يصلح أي ملف بالأعمدة: المرحلة، الصف (اختياري)، اليوم، الترتيب، النوع، الاسم، الاسم بالإنجليزية، تبدأ، تنتهي.') }}</p>
+</div>
+</div>
+{% else %}
+{% set c = plan.counts %}
+<div class="kpis">
+  <div class="kpi ok"><div class="n">{{ c.days }}</div><div class="l">{{ _('أيام') }}</div><small>{{ _('مرحلة أو صف في يوم') }}</small></div>
+  <div class="kpi"><div class="n">{{ c.periods }}</div><div class="l">{{ _('حصص واستراحات') }}</div></div>
+  <div class="kpi"><div class="n">{{ c.grades }}</div><div class="l">{{ _('صفوف بتوقيت خاص') }}</div></div>
+  <div class="kpi {{ 'bad' if c.problems else '' }}"><div class="n">{{ c.problems }}</div><div class="l">{{ _('أسطر لم تُفهم') }}</div></div>
+</div>
+<form method="post" action="{{ url_for('structure.periods_import_apply', token=token) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="card table-wrap"><table data-table id="t-pplan">
+  <thead><tr><th data-filter="select">{{ _('المرحلة') }}</th><th data-filter="select">{{ _('الصف') }}</th><th data-filter="select">{{ _('اليوم') }}</th>
+    <th data-nosort>{{ _('الحصص') }}</th><th data-sort="num">{{ _('الحالية') }}</th></tr></thead>
+  <tbody>{% for t in plan.targets %}<tr>
+    <td>{{ label(stages[t.stage_id]) }}</td><td>{{ t.grade or _('كل الصفوف') }}</td><td>{{ _(t.day) }}</td>
+    <td><div class="chips">{% for p in t.periods %}<span class="badge {{ 'warn' if p.kind == 'break' else '' }}" title="{{ p.label }}">{{ p.start }}–{{ p.end }}</span>{% endfor %}</div></td>
+    <td>{{ t.current }}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% if plan.missing %}
+<div class="alert info">{{ _('صفوف أو مراحل في الملف ليست في هذا النظام — تُركت حصصها:') }}
+  {% for m in plan.missing %}<b>{{ m.name }}</b> ({{ m.rows }}){% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}</div>
+{% endif %}
+{% if plan.problems %}
+<div class="card"><h2 style="margin-top:0">{{ _('أسطر لن تُستورد') }}</h2>
+<table><thead><tr><th>{{ _('الموضع') }}</th><th>{{ _('السبب') }}</th></tr></thead>
+<tbody>{% for p in plan.problems[:200] %}<tr><td class="mono">{{ p.where }}</td><td>{{ p.why }}</td></tr>{% endfor %}</tbody></table></div>
+{% endif %}
+<div class="card">
+  <label class="checks"><input type="checkbox" name="school_days" value="1" checked> {{ _('اجعل أيام دوام كل مرحلة هي الأيام الواردة في الملف') }}</label>
+  <p class="hint">{% for sid, days in stage_days.items() %}{{ label(stages[sid]) }}: {% for d in days %}{{ _(day_names[d]) }}{% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}{% if not loop.last %} · {% endif %}{% endfor %}</p>
+  <p class="hint">{{ _('الحصص الموجودة تُعدَّل في مكانها بالترتيب، فيبقى جدول الشعب المرتبط بها.') }}</p>
+</div>
+<div class="actions-row">
+  <button class="btn" type="submit">✔ {{ _('تنفيذ') }}</button>
+  <a class="btn secondary" href="{{ url_for('structure.periods_import') }}">{{ _('ملف آخر') }}</a>
+</div>
+</form>
+{% endif %}
+{% endblock %}

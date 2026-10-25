@@ -16,6 +16,7 @@ from security import hash_password
 from utils.audit import audit
 from utils.helpers import is_valid_email
 from utils.tabular import read_table, to_records, parse_date, norm
+from utils.i18n import _
 
 employees_bp = Blueprint('employees', __name__)
 
@@ -26,6 +27,7 @@ FIELDS = [
     ('phone', ['الهاتف', 'الجوال', 'رقم الهاتف', 'phone', 'mobile']),
     ('department', ['القسم', 'department', 'dept']),
     ('job_title', ['المسمى الوظيفي', 'الوظيفة', 'المسمى', 'job', 'job_title', 'title', 'position']),
+    ('specialty', ['التخصص', 'المادة', 'specialty', 'subject']),
     ('hire_date', ['تاريخ التعيين', 'hire_date', 'hired']),
 ]
 FIELD_LABELS = ['الاسم', 'الرقم الوظيفي', 'البريد', 'الهاتف', 'القسم', 'المسمى الوظيفي', 'تاريخ التعيين']
@@ -80,11 +82,11 @@ def _apply(emp, data):
     number = (data.get('employee_number') or '').strip() or None
     email = (data.get('email') or '').strip() or None
     if not name:
-        errors.append('الاسم مطلوب')
+        errors.append(_('الاسم مطلوب'))
     if email and not is_valid_email(email):
-        errors.append(f'بريد غير صالح: {email}')
+        errors.append(_('بريد غير صالح: {email}', email=email))
     if number and Employee.query.filter(Employee.employee_number == number, Employee.id != (emp.id or 0)).first():
-        errors.append(f'الرقم الوظيفي {number} مستخدم لموظف آخر')
+        errors.append(_('الرقم الوظيفي {number} مستخدم لموظف آخر', number=number))
     if errors:
         return errors
     emp.full_name, emp.employee_number, emp.email = name, number, email
@@ -97,7 +99,7 @@ def _apply(emp, data):
     if did not in (None, ''):
         d = get_scoped(Department, int(did)) if str(did).isdigit() else None
         if d is None:
-            return ['القسم غير موجود']
+            return [_('القسم غير موجود')]
         emp.department_id = d.id
     elif 'department_id' in data:
         emp.department_id = None
@@ -120,7 +122,7 @@ def form(emp_id=None):
             db.session.flush()
             audit('employee.created' if not emp_id else 'employee.updated', 'employee', emp.id, name=emp.full_name)
             db.session.commit()
-            flash('تم الحفظ', 'success')
+            flash(_('تم الحفظ'), 'success')
             return redirect(url_for('employees.index'))
         db.session.rollback()
         if not emp_id:
@@ -149,28 +151,50 @@ def import_list():
         flash(str(exc), 'danger')
         return redirect(url_for('employees.index'))
     except Exception:  # noqa: BLE001 — a damaged spreadsheet
-        flash('تعذّرت قراءة الملف — تأكد أنه ملف Excel أو CSV سليم', 'danger')
+        flash(_('تعذّرت قراءة الملف — تأكد أنه ملف Excel أو CSV سليم'), 'danger')
         return redirect(url_for('employees.index'))
-    records, _ = to_records(rows, FIELDS)
+    records, _hdr = to_records(rows, FIELDS)
     if not records:
-        flash('لا توجد بيانات للاستيراد', 'warning')
+        flash(_('لا توجد بيانات للاستيراد'), 'warning')
         return redirect(url_for('employees.index'))
     update = request.form.get('update') == '1'
+    by_name = {}
+    for e in Employee.query.all():
+        by_name.setdefault(norm(e.full_name), e)
+    completed = 0
     default_dept = request.form.get('department_id') or ''
     find_dept = dept_resolver()
     added = updated = skipped = 0
     problems, unknown_depts = [], set()
     for i, rec in enumerate(records, 1):
         if not rec.get('full_name'):
-            problems.append(f'سطر {i}: بلا اسم')
+            problems.append(_('سطر {i}: بلا اسم', i=i))
             continue
         emp = None
         if rec.get('employee_number'):
             emp = Employee.query.filter_by(employee_number=rec['employee_number']).first()
         if emp is None and rec.get('email'):
             emp = Employee.query.filter(func.lower(Employee.email) == rec['email'].lower()).first()
+        if emp is None:                   # the same teacher from another system (venues, tickets), by name
+            emp = by_name.get(norm(rec['full_name']))
+        if rec.get('specialty'):
+            rec['job_title'] = f"{rec.get('job_title') or ''} ({rec['specialty']})".strip() \
+                if rec.get('job_title') else rec['specialty']
         if emp is not None and not update:
-            skipped += 1
+            filled = False                # never overwrite — only fill what the employee does not have yet
+            for k in ('email', 'phone', 'job_title', 'employee_number'):
+                if rec.get(k) and not getattr(emp, k):
+                    if k == 'email' and (not is_valid_email(rec[k]) or Employee.query.filter(
+                            func.lower(Employee.email) == rec[k].lower()).first()):
+                        continue
+                    if k == 'employee_number' and Employee.query.filter_by(employee_number=rec[k]).first():
+                        continue
+                    setattr(emp, k, rec[k].strip()[:200])
+                    filled = True
+            if filled:
+                completed += 1
+            else:
+                skipped += 1
             continue
         data = dict(rec)
         if rec.get('department'):
@@ -190,24 +214,26 @@ def import_list():
             data['notes'] = target.notes
         errs = _apply(target, data)
         if errs:
-            problems.append(f'سطر {i} ({rec.get("full_name")}): ' + '، '.join(errs))
+            problems.append(_('سطر {i} ({v}): ', i=i, v=rec.get("full_name")) + _('، ').join(errs))
             continue
         if is_new:
             db.session.add(target)
+            by_name.setdefault(norm(target.full_name), target)
             added += 1
         else:
             updated += 1
         db.session.flush()
-    audit('employee.imported', added=added, updated=updated, skipped=skipped, problems=len(problems))
+    audit('employee.imported', added=added, updated=updated, completed=completed, skipped=skipped,
+          problems=len(problems))
     db.session.commit()
-    msg = f'أُضيف {added}، حُدِّث {updated}، تُرك {skipped} (موجود مسبقًا)'
+    msg = _('أُضيف {added}، حُدِّث {updated}، أُكملت بيانات {completed}، تُرك {skipped} (موجود مسبقًا)', added=added, updated=updated, completed=completed, skipped=skipped)
     flash(msg, 'success' if added or updated else 'warning')
     if unknown_depts:
-        flash('أقسام غير معروفة (أُضيف الموظفون بلا قسم): ' + '، '.join(sorted(unknown_depts)), 'warning')
+        flash(_('أقسام غير معروفة (أُضيف الموظفون بلا قسم): ') + _('، ').join(sorted(unknown_depts)), 'warning')
     for p in problems[:15]:
         flash(p, 'danger')
     if len(problems) > 15:
-        flash(f'… و{len(problems) - 15} أخطاء أخرى', 'danger')
+        flash(_('… و{v} أخطاء أخرى', v=len(problems) - 15), 'danger')
     return redirect(url_for('employees.index'))
 
 
@@ -217,7 +243,7 @@ def template():
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(FIELD_LABELS)
-    w.writerow(['محمد أحمد', '1023', 'm.ahmad@example.org', '0790000000', 'تقنية المعلومات', 'فني', '2024-09-01'])
+    w.writerow([_('محمد أحمد'), '1023', 'm.ahmad@example.org', '0790000000', _('تقنية المعلومات'), _('فني'), '2024-09-01'])
     return Response('﻿' + buf.getvalue(), mimetype='text/csv; charset=utf-8',
                     headers={'Content-Disposition': 'attachment; filename=employees_template.csv'})
 
@@ -266,10 +292,10 @@ def bulk():
         created = []
         for e in picked:
             if e.user_id:
-                skipped.append(f'{e.full_name} (له حساب)')
+                skipped.append(_('{full_name} (له حساب)', full_name=e.full_name))
                 continue
             if not e.email:
-                skipped.append(f'{e.full_name} (بلا بريد)')
+                skipped.append(_('{full_name} (بلا بريد)', full_name=e.full_name))
                 continue
             existing = User.query.filter(func.lower(User.email) == e.email.lower()).first()
             if existing:
@@ -294,15 +320,15 @@ def bulk():
             from blueprints.auth import _issue_reset
             failed = sum(1 for u in created if not _issue_reset(u, g.tenant, by_admin=True))
             if failed:
-                flash(f'تعذّر إرسال رابط كلمة المرور إلى {failed} — راجع سجل البريد', 'warning')
+                flash(_('تعذّر إرسال رابط كلمة المرور إلى {failed} — راجع سجل البريد', failed=failed), 'warning')
     else:
         abort(400)
     if action != 'accounts':
         audit(f'employee.bulk_{action}', count=done)
     db.session.commit()
-    verb = {'activate': 'فُعِّل', 'deactivate': 'أُوقف', 'move': 'نُقل', 'delete': 'حُذف',
-            'accounts': 'حسابات أُنشئت أو رُبطت'}[action]
-    msg = f'{verb}: {done}' + ((' — تُرك: ' + '، '.join(skipped[:10])) if skipped else '')
+    verb = {'activate': _('فُعِّل'), 'deactivate': _('أُوقف'), 'move': _('نُقل'), 'delete': _('حُذف'),
+            'accounts': _('حسابات أُنشئت أو رُبطت')}[action]
+    msg = f'{verb}: {done}' + ((_(' — تُرك: ') + _('، ').join(skipped[:10])) if skipped else '')
     flash(msg, 'success' if done else 'warning')
     return redirect(url_for('employees.index'))
 

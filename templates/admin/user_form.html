@@ -1,58 +1,58 @@
 {% extends 'base.html' %}
-{% block title %}{{ 'تعديل مستخدم' if u.id else 'مستخدم جديد' }}{% endblock %}
+{% block title %}{{ _('تعديل مستخدم') if u.id else _('مستخدم جديد') }}{% endblock %}
 {% block content %}
-<h1>{{ 'تعديل: ' ~ u.full_name if u.id else 'مستخدم جديد' }}</h1>
+<h1>{{ _('تعديل: ') ~ u.full_name if u.id else _('مستخدم جديد') }}</h1>
 {% set role_ids = u.roles|map(attribute='id')|list if u.id else [] %}
 {% set dept_ids = u.departments|map(attribute='id')|list if u.id else [] %}
 <div class="card">
 <form method="post" autocomplete="off">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row">
-    <div><label>الاسم الكامل</label><input type="text" name="full_name" value="{{ u.full_name or '' }}" required></div>
-    <div><label>اسم المستخدم</label><input type="text" name="username" value="{{ u.username or '' }}" dir="ltr" required></div>
-    <div><label>البريد الإلكتروني</label><input type="email" name="email" value="{{ u.email or '' }}" dir="ltr"></div>
-    <div><label>رقم الموظف</label><input type="text" name="employee_number" value="{{ u.employee_number or '' }}"></div>
+    <div><label>{{ _('الاسم الكامل') }}</label><input type="text" name="full_name" value="{{ u.full_name or '' }}" required></div>
+    <div><label>{{ _('اسم المستخدم') }}</label><input type="text" name="username" value="{{ u.username or '' }}" dir="ltr" required></div>
+    <div><label>{{ _('البريد الإلكتروني') }}</label><input type="email" name="email" value="{{ u.email or '' }}" dir="ltr"></div>
+    <div><label>{{ _('رقم الموظف') }}</label><input type="text" name="employee_number" value="{{ u.employee_number or '' }}"></div>
   </div>
-  <label>الأدوار</label>
+  <label>{{ _('الأدوار') }}</label>
   <div class="checks">{% for r in roles %}
-    <label><input type="checkbox" name="roles" value="{{ r.id }}" {% if r.id in role_ids %}checked{% endif %}> {{ r.name }}</label>
+    <label><input type="checkbox" name="roles" value="{{ r.id }}" {% if r.id in role_ids %}checked{% endif %}> {{ _(r.name) }}</label>
   {% endfor %}</div><br>
   <input type="hidden" name="scope_form" value="1">
-  <label>المراحل التي يتابعها (المشرف والسكرتير يرون طلبة هذه المراحل فقط)</label>
+  <label>{{ _('المراحل التي يتابعها (المشرف والسكرتير يرون طلبة هذه المراحل فقط)') }}</label>
   <div class="checks">{% for st in stages %}
-    <label><input type="checkbox" name="stages" value="{{ st.id }}" {% if st.id in user_stage_ids %}checked{% endif %}> {{ st.name }}{% if not st.is_active %} (متوقفة){% endif %}</label>
-  {% else %}<span class="muted">لم تُضف مراحل بعد — أضفها من «الهيكل المدرسي».</span>{% endfor %}</div><br>
+    <label><input type="checkbox" name="stages" value="{{ st.id }}" {% if st.id in user_stage_ids %}checked{% endif %}> {{ label(st) }}{% if not st.is_active %} ({{ _('متوقفة)') }}{% endif %}</label>
+  {% else %}<span class="muted">{{ _('لم تُضف مراحل بعد — أضفها من «الهيكل المدرسي».') }}</span>{% endfor %}</div><br>
   {% if stages %}
-  <label>الشعب التي يدرّسها (للمعلم؛ تُضاف إليها شعب الجدول الدراسي تلقائيًا)</label>
+  <label>{{ _('الشعب التي يدرّسها (للمعلم؛ تُضاف إليها شعب الجدول الدراسي تلقائيًا)') }}</label>
   <div class="scope-grid">{% for st in stages %}{% for gr in st.grades %}
-    <fieldset><legend>{{ st.name }} — {{ gr.name }}</legend>
+    <fieldset><legend>{{ label(st) }} — {{ label(gr) }}</legend>
     {% for sec in gr.sections %}<label><input type="checkbox" name="sections" value="{{ sec.id }}" {% if sec.id in user_section_ids %}checked{% endif %}> {{ sec.name }}</label>{% endfor %}
     </fieldset>{% endfor %}{% endfor %}</div><br>
   {% endif %}
   {% if departments %}
-  <label>الأقسام الإدارية المرتبطة</label>
+  <label>{{ _('الأقسام الإدارية المرتبطة') }}</label>
   <div class="checks">{% for d in departments %}
     <label><input type="checkbox" name="departments" value="{{ d.id }}" {% if d.id in dept_ids %}checked{% endif %}> {{ d.icon }} {{ d.name }}</label>
   {% endfor %}</div><br>
   {% endif %}
   <div class="row">
-    <div><label>كلمة مرور مؤقتة (اختياري)</label><input type="password" name="temp_password" autocomplete="new-password" dir="ltr">
-      <p class="hint">إن تركتها فارغة يُرسل للمستخدم رابط لتعيين كلمة مروره بنفسه. المؤقتة تُطلب تغييرها عند أول دخول.</p></div>
-    {% if u.id %}<div><label>الحالة</label><select name="is_active">
-      <option value="1" {% if u.is_active %}selected{% endif %}>فعّال</option>
-      <option value="0" {% if not u.is_active %}selected{% endif %}>موقوف</option></select></div>{% endif %}
+    <div><label>{{ _('كلمة مرور مؤقتة (اختياري)') }}</label><input type="password" name="temp_password" autocomplete="new-password" dir="ltr">
+      <p class="hint">{{ _('إن تركتها فارغة يُرسل للمستخدم رابط لتعيين كلمة مروره بنفسه. المؤقتة تُطلب تغييرها عند أول دخول.') }}</p></div>
+    {% if u.id %}<div><label>{{ _('الحالة') }}</label><select name="is_active">
+      <option value="1" {% if u.is_active %}selected{% endif %}>{{ _('فعّال') }}</option>
+      <option value="0" {% if not u.is_active %}selected{% endif %}>{{ _('موقوف') }}</option></select></div>{% endif %}
   </div>
-  <button class="btn" type="submit">حفظ</button>
-  <a class="btn secondary" href="{{ url_for('admin.users') }}">إلغاء</a>
+  <button class="btn" type="submit">{{ _('حفظ') }}</button>
+  <a class="btn secondary" href="{{ url_for('admin.users') }}">{{ _('إلغاء') }}</a>
 </form></div>
 {% if u.id %}
-<div class="card"><h2>إجراءات</h2>
+<div class="card"><h2>{{ _('إجراءات') }}</h2>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-  {% for action, label in [('unlock','فك القفل'),('logout_all','إنهاء كل الجلسات'),('send_reset','إرسال رابط إعادة تعيين')] %}
-  <form method="post" action="{{ url_for('admin.user_action', user_id=u.id) }}" data-confirm="{{ label }}؟">
+  {% for action, lab in [('unlock','فك القفل'),('logout_all','إنهاء كل الجلسات'),('send_reset','إرسال رابط إعادة تعيين')] %}
+  <form method="post" action="{{ url_for('admin.user_action', user_id=u.id) }}" data-confirm="{{ _(lab) }}{{ _('؟') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="action" value="{{ action }}">
-    <button class="btn secondary" type="submit">{{ label }}</button>
+    <button class="btn secondary" type="submit">{{ _(lab) }}</button>
   </form>
   {% endfor %}</div>
 </div>

@@ -17,6 +17,7 @@ from models.core import utcnow, DEPARTMENT_TYPES
 from security import hash_password, password_problems
 from utils.audit import audit
 from utils.helpers import split_emails, is_valid_email
+from utils.i18n import _
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -65,29 +66,29 @@ def _apply_user_form(user, is_new):
     full_name = (f.get('full_name') or '').strip()
     email = (f.get('email') or '').strip() or None
     if not re.fullmatch(r'[A-Za-z0-9._@-]{3,80}', username):
-        errors.append('اسم المستخدم: 3 أحرف على الأقل، حروف إنجليزية وأرقام و . _ - فقط')
+        errors.append(_('اسم المستخدم: 3 أحرف على الأقل، حروف إنجليزية وأرقام و . _ - فقط'))
     if not full_name:
-        errors.append('الاسم الكامل مطلوب')
+        errors.append(_('الاسم الكامل مطلوب'))
     if email and not is_valid_email(email):
-        errors.append('البريد الإلكتروني غير صالح')
+        errors.append(_('البريد الإلكتروني غير صالح'))
     dup = User.query.filter(func.lower(User.username) == username.lower(), User.id != (user.id or 0)).first()
     if dup:
-        errors.append('اسم المستخدم مستخدم مسبقًا')
+        errors.append(_('اسم المستخدم مستخدم مسبقًا'))
     if email:
         dup = User.query.filter(func.lower(User.email) == email.lower(), User.id != (user.id or 0)).first()
         if dup:
-            errors.append('البريد مستخدم لحساب آخر')
+            errors.append(_('البريد مستخدم لحساب آخر'))
     role_ids = _ids('roles')
     dept_ids = _ids('departments')
     valid_roles = {r.id for r in Role.query.filter(Role.id.in_(role_ids)).all()} if role_ids else set()
     valid_depts = {d.id for d in Department.query.filter(Department.id.in_(dept_ids)).all()} if dept_ids else set()
     if valid_roles != role_ids or valid_depts != dept_ids:
-        errors.append('اختيار غير صالح للأدوار أو الأقسام')
+        errors.append(_('اختيار غير صالح للأدوار أو الأقسام'))
     temp_pw = f.get('temp_password') or ''
     if temp_pw:
         errors += password_problems(temp_pw, username)
     elif is_new and not email:
-        errors.append('أدخل كلمة مرور مؤقتة أو بريدًا لإرسال رابط تعيين كلمة المرور')
+        errors.append(_('أدخل كلمة مرور مؤقتة أو بريدًا لإرسال رابط تعيين كلمة المرور'))
     if errors:
         return errors, None
     user.username, user.full_name, user.email = username, full_name, email
@@ -174,11 +175,11 @@ def user_new():
             if not has_temp:
                 from blueprints.auth import _issue_reset
                 res = _issue_reset(user, g.tenant, by_admin=True)
-                flash('تم إنشاء المستخدم وإرسال رابط تعيين كلمة المرور' if res else
-                      f'تم إنشاء المستخدم، لكن فشل إرسال البريد: {res.error}',
+                flash(_('تم إنشاء المستخدم وإرسال رابط تعيين كلمة المرور') if res else
+                      _('تم إنشاء المستخدم، لكن فشل إرسال البريد: {error}', error=res.error),
                       'success' if res else 'warning')
             else:
-                flash('تم إنشاء المستخدم؛ سيُطلب منه تغيير كلمة المرور عند أول دخول', 'success')
+                flash(_('تم إنشاء المستخدم؛ سيُطلب منه تغيير كلمة المرور عند أول دخول'), 'success')
             return redirect(url_for('admin.users'))
         return render_template('admin/user_form.html', **_user_form_ctx(user, errors)), 400
     return render_template('admin/user_form.html', **_user_form_ctx(user))
@@ -191,18 +192,18 @@ def user_edit(user_id):
     if request.method == 'POST':
         errors, extra = _apply_user_form(user, False)
         if not errors:
-            role_ids, dept_ids, _ = extra
+            role_ids, dept_ids, _x = extra
             _sync_links(user, role_ids, dept_ids)
             if not _admins_remaining() :
                 db.session.rollback()
-                errors = ['لا يمكن: يجب أن يبقى مستخدم فعّال واحد على الأقل بصلاحية إدارة المستخدمين']
+                errors = [_('لا يمكن: يجب أن يبقى مستخدم فعّال واحد على الأقل بصلاحية إدارة المستخدمين')]
             else:
                 if not user.is_active:
                     user.session_version += 1
                 audit('user.updated', 'user', user.id, roles=sorted(role_ids),
                       departments=sorted(dept_ids), active=user.is_active)
                 db.session.commit()
-                flash('تم الحفظ', 'success')
+                flash(_('تم الحفظ'), 'success')
                 return redirect(url_for('admin.users'))
         db.session.rollback()
         user = _get_or_404(User, user_id)
@@ -219,19 +220,19 @@ def user_action(user_id):
         user.locked_until, user.failed_logins = None, 0
         audit('user.unlocked', 'user', user.id)
         db.session.commit()
-        flash('تم فك القفل', 'success')
+        flash(_('تم فك القفل'), 'success')
     elif action == 'logout_all':
         user.session_version += 1
         audit('user.sessions_revoked', 'user', user.id)
         db.session.commit()
-        flash('تم إنهاء جميع جلسات المستخدم', 'success')
+        flash(_('تم إنهاء جميع جلسات المستخدم'), 'success')
     elif action == 'send_reset':
         if not user.email:
-            flash('لا يوجد بريد لهذا المستخدم', 'danger')
+            flash(_('لا يوجد بريد لهذا المستخدم'), 'danger')
         else:
             from blueprints.auth import _issue_reset
             res = _issue_reset(user, g.tenant, by_admin=True)
-            flash('تم إرسال رابط إعادة التعيين' if res else f'فشل الإرسال: {res.error}',
+            flash(_('تم إرسال رابط إعادة التعيين') if res else _('فشل الإرسال: {error}', error=res.error),
                   'success' if res else 'danger')
     else:
         abort(400)
@@ -241,7 +242,7 @@ def user_action(user_id):
 def _bulk_done(n, skipped, verb):
     msg = f'{verb}: {n}'
     if skipped:
-        msg += ' — تُرك: ' + '، '.join(skipped)
+        msg += _(' — تُرك: ') + _('، ').join(skipped)
     flash(msg, 'success' if n else 'warning')
 
 
@@ -259,11 +260,11 @@ def users_bulk():
     for u in picked:
         if action in ('deactivate', 'delete'):
             if u.id == me:
-                skipped.append(f'{u.full_name} (حسابك)')
+                skipped.append(_('{full_name} (حسابك)', full_name=u.full_name))
                 continue
             # earlier rows of this batch are already applied (autoflush), so this sees the batch so far
             if u.has_perm('users.manage') and not _admins_remaining(excluding_user_id=u.id):
-                skipped.append(f'{u.full_name} (آخر مدير)')
+                skipped.append(_('{full_name} (آخر مدير)', full_name=u.full_name))
                 continue
         if action == 'activate':
             u.is_active = True
@@ -280,8 +281,8 @@ def users_bulk():
         audit(f'user.bulk_{action}', 'user', u.id)
         done += 1
     db.session.commit()
-    _bulk_done(done, skipped, {'activate': 'فُعِّل', 'deactivate': 'أُوقف', 'delete': 'حُذف',
-                               'logout_all': 'أُنهيت جلسات'}[action])
+    _bulk_done(done, skipped, {'activate': _('فُعِّل'), 'deactivate': _('أُوقف'), 'delete': _('حُذف'),
+                               'logout_all': _('أُنهيت جلسات')}[action])
     return redirect(request.referrer or url_for('admin.users'))
 
 
@@ -302,23 +303,23 @@ def _apply_dept_form(dept):
     raw_emails = f.get('emails') or ''
     emails = split_emails(raw_emails)
     if not code or len(code) > 50:
-        errors.append('الكود مطلوب (حتى 50 حرفًا)')
+        errors.append(_('الكود مطلوب (حتى 50 حرفًا)'))
     if not name:
-        errors.append('اسم القسم مطلوب')
+        errors.append(_('اسم القسم مطلوب'))
     if dtype not in dict(DEPARTMENT_TYPES):
-        errors.append('نوع القسم غير صالح')
+        errors.append(_('نوع القسم غير صالح'))
     bad = [p for p in re.split(r'[;,\s]+', raw_emails) if p.strip() and p.strip() not in emails
            and p.strip().lower() not in {e.lower() for e in emails}]
     if bad:
-        errors.append('بريد غير صالح: ' + '، '.join(bad))
+        errors.append(_('بريد غير صالح: ') + _('، ').join(bad))
     if Department.query.filter(Department.code == code, Department.id != (dept.id or 0)).first():
-        errors.append('الكود مستخدم لقسم آخر')
+        errors.append(_('الكود مستخدم لقسم آخر'))
     active = f.get('is_active', '1') == '1'
     if dtype in ('HR', 'Finance') and active:
         other = Department.query.filter(Department.dept_type == dtype, Department.is_active.is_(True),
                                         Department.id != (dept.id or 0)).first()
         if other:
-            errors.append(f'يوجد قسم فعّال آخر من النوع نفسه: {other.name}')
+            errors.append(_('يوجد قسم فعّال آخر من النوع نفسه: {name}', name=other.name))
     if errors:
         return errors
     dept.code, dept.name, dept.dept_type = code, name, dtype
@@ -348,7 +349,7 @@ def department_form(dept_id=None):
             audit('department.created' if not dept_id else 'department.updated', 'department',
                   dept.id, code=dept.code, name=dept.name, type=dept.dept_type)
             db.session.commit()
-            flash('تم الحفظ', 'success')
+            flash(_('تم الحفظ'), 'success')
             return redirect(url_for('admin.departments'))
         db.session.rollback()
     return render_template('admin/department_form.html', d=dept, errors=errors,
@@ -361,10 +362,10 @@ def department_in_use(dept):
     try:
         from models import Employee
         if Employee.query.filter_by(department_id=dept.id).first():
-            reasons.append('مرتبط بموظفين')
+            reasons.append(_('مرتبط بموظفين'))
     except ImportError:
         pass
-    return '، '.join(reasons)
+    return _('، ').join(reasons)
 
 
 @admin_bp.route('/departments/bulk', methods=['POST'])
@@ -379,7 +380,7 @@ def departments_bulk():
             if d.dept_type in ('HR', 'Finance') and Department.query.filter(
                     Department.dept_type == d.dept_type, Department.is_active.is_(True),
                     Department.id != d.id).first():
-                skipped.append(f'{d.name} (يوجد قسم فعّال من النوع نفسه)')
+                skipped.append(_('{name} (يوجد قسم فعّال من النوع نفسه)', name=d.name))
                 continue
             d.is_active = True
         elif action == 'deactivate':
@@ -387,7 +388,7 @@ def departments_bulk():
         else:
             why = department_in_use(d)
             if why:
-                skipped.append(f'{d.name} ({why} — أوقفه بدلاً من حذفه)')
+                skipped.append(_('{name} ({why} — أوقفه بدلاً من حذفه)', name=d.name, why=why))
                 continue
             audit('department.deleted', 'department', d.id, code=d.code, name=d.name)
             db.session.delete(d)
@@ -396,7 +397,7 @@ def departments_bulk():
         audit(f'department.bulk_{action}', 'department', d.id)
         done += 1
     db.session.commit()
-    _bulk_done(done, skipped, {'activate': 'فُعِّل', 'deactivate': 'أُوقف', 'delete': 'حُذف'}[action])
+    _bulk_done(done, skipped, {'activate': _('فُعِّل'), 'deactivate': _('أُوقف'), 'delete': _('حُذف')}[action])
     return redirect(url_for('admin.departments'))
 
 
@@ -420,7 +421,7 @@ def role_form(role_id=None):
         name = (request.form.get('name') or '').strip()
         codes = {c for c in request.form.getlist('perms') if c in PERMISSIONS}
         if not name:
-            errors.append('اسم الدور مطلوب')
+            errors.append(_('اسم الدور مطلوب'))
         if not errors:
             role.name = name
             role.description = (request.form.get('description') or '').strip() or None
@@ -438,11 +439,11 @@ def role_form(role_id=None):
             db.session.expire_all()
             if not _admins_remaining():
                 db.session.rollback()
-                errors.append('لا يمكن إزالة صلاحية إدارة المستخدمين من آخر مدير')
+                errors.append(_('لا يمكن إزالة صلاحية إدارة المستخدمين من آخر مدير'))
             else:
                 audit('role.saved', 'role', role.id, name=name, permissions=sorted(codes))
                 db.session.commit()
-                flash('تم الحفظ', 'success')
+                flash(_('تم الحفظ'), 'success')
                 return redirect(url_for('admin.roles'))
         if role_id:
             role = _get_or_404(Role, role_id)
@@ -458,16 +459,16 @@ def roles_bulk():
     done, skipped = 0, []
     for r in Role.query.filter(Role.id.in_(_ids('ids'))).all():
         if r.is_system:
-            skipped.append(f'{r.name} (دور أساسي)')
+            skipped.append(_('{name} (دور أساسي)', name=r.name))
             continue
         if UserRole.query.filter_by(role_id=r.id).first():
-            skipped.append(f'{r.name} (مسند إلى مستخدمين)')
+            skipped.append(_('{name} (مسند إلى مستخدمين)', name=r.name))
             continue
         audit('role.deleted', 'role', r.id, name=r.name)
         db.session.delete(r)
         done += 1
     db.session.commit()
-    _bulk_done(done, skipped, 'حُذف')
+    _bulk_done(done, skipped, _('حُذف'))
     return redirect(url_for('admin.roles'))
 
 
@@ -513,13 +514,13 @@ def email_log_bulk():
     q = EmailLog.query.filter(EmailLog.id.in_(_ids('ids')))
     if action == 'ack':
         n = q.update({'acknowledged': True}, synchronize_session=False)
-        verb = 'عُلِّم كمقروء'
+        verb = _('عُلِّم كمقروء')
     elif action == 'delete':
         n = 0
         for row in q.all():
             db.session.delete(row)
             n += 1
-        verb = 'حُذف'
+        verb = _('حُذف')
     else:
         abort(400)
     audit(f'email_log.bulk_{action}', count=n)
@@ -539,12 +540,41 @@ def _save_logo(file_storage, which):
     if ext == '.webp' and head[8:12] != b'WEBP':
         ext = None
     if not ext:
-        raise ValueError('الشعار يجب أن يكون PNG أو JPG أو WEBP')
+        raise ValueError(_('الشعار يجب أن يكون PNG أو JPG أو WEBP'))
     folder = os.path.join(current_app.config['UPLOAD_DIR'], 'tenants', str(g.tenant.id))
     os.makedirs(folder, exist_ok=True)
     name = f'logo_{which}_{os.urandom(4).hex()}{ext}'
     file_storage.save(os.path.join(folder, name))
     return name
+
+
+@admin_bp.route('/ticker', methods=['GET', 'POST'])
+@permission_required('settings.manage')
+def ticker_settings():
+    """The news ticker at the top of every page: messages (Arabic / English) and how it looks."""
+    from models import Tenant
+    from services import ticker
+    from utils.i18n import _
+    t = db.session.get(Tenant, g.tenant.id)
+    cfg = ticker.load(t)
+    errors = []
+    if request.method == 'POST':
+        cfg, errors = ticker.from_form(request.form)
+        if not errors:
+            ticker.save(t, cfg)
+            audit('ticker.updated', 'tenant', t.id, enabled=cfg['enabled'],
+                  messages=len(cfg['feeds_ar']) + len(cfg['feeds_en']))
+            db.session.commit()
+            flash(_('تم حفظ الشريط الإخباري'), 'success')
+            return redirect(url_for('admin.ticker_settings'))
+    sample = dict(cfg)
+    if not (sample['feeds_ar'] or sample['feeds_en']):
+        sample['feeds_ar'] = [_('مرحباً بكم في نظام غياب الطلبة والاستئذان')]
+        sample['feeds_en'] = ['Welcome to the student absence and permission system']
+    from utils.i18n import lang
+    return render_template('admin/ticker.html', cfg=cfg, preview=ticker.render_values(sample, lang()),
+                           fonts=ticker.FONTS, separators=ticker.SEPARATORS, errors=errors), \
+        (400 if errors else 200)
 
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])
@@ -559,11 +589,11 @@ def settings():
         accent = (f.get('accent_color') or '').strip()
         sender = (f.get('mail_sender') or '').strip()
         if not name_ar:
-            errors.append('الاسم العربي مطلوب')
+            errors.append(_('الاسم العربي مطلوب'))
         if not re.fullmatch(r'#[0-9A-Fa-f]{6}', accent):
-            errors.append('اللون يجب أن يكون بصيغة ‎#RRGGBB')
+            errors.append(_('اللون يجب أن يكون بصيغة ‎#RRGGBB'))
         if sender and not is_valid_email(sender):
-            errors.append('بريد المرسل غير صالح')
+            errors.append(_('بريد المرسل غير صالح'))
         logos = {}
         for which in ('primary', 'secondary'):
             fs = request.files.get(f'logo_{which}')
@@ -584,6 +614,6 @@ def settings():
                 t.logo_secondary = logos['secondary']
             audit('settings.updated', 'tenant', t.id, logos=sorted(logos))
             db.session.commit()
-            flash('تم حفظ الإعدادات', 'success')
+            flash(_('تم حفظ الإعدادات'), 'success')
             return redirect(url_for('admin.settings'))
     return render_template('admin/settings.html', t=t, errors=errors), (400 if errors else 200)

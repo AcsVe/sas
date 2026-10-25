@@ -21,20 +21,37 @@ def _clean(v):
     return str(v).strip()
 
 
+def read_sheets(text=None, file_storage=None):
+    """→ [(sheet name, rows)]: every sheet of an Excel workbook (a school file often has one sheet per
+    section), or one unnamed sheet for CSV / pasted text."""
+    if file_storage is not None and file_storage.filename and \
+            file_storage.filename.lower().endswith(('.xlsx', '.xlsm')):
+        from openpyxl import load_workbook
+        wb = load_workbook(io.BytesIO(file_storage.read()), read_only=True, data_only=True)
+        out = []
+        for ws in wb.worksheets:
+            rows = [[_clean(c) for c in r] for r in ws.iter_rows(values_only=True)]
+            rows = [r for r in rows if any(r)]
+            if rows:
+                out.append((ws.title.strip(), rows))
+        wb.close()
+        return out
+    rows = read_table(text, file_storage)
+    return [('', rows)] if rows else []
+
+
 def read_table(text=None, file_storage=None):
-    """→ list of rows (list of strings). Accepts pasted text (tab / comma / ; / | separated), .csv, .xlsx."""
+    """→ list of rows (list of strings). Accepts pasted text (tab / comma / ; / | separated), .csv, .xlsx
+    (first sheet)."""
     if file_storage is not None and file_storage.filename:
         name = file_storage.filename.lower()
-        data = file_storage.read()
         if name.endswith(('.xlsx', '.xlsm')):
-            from openpyxl import load_workbook
-            wb = load_workbook(io.BytesIO(data), read_only=True, data_only=True)
-            ws = wb.worksheets[0]
-            rows = [[_clean(c) for c in r] for r in ws.iter_rows(values_only=True)]
-            wb.close()
-            return [r for r in rows if any(r)]
+            sheets = read_sheets(None, file_storage)
+            return sheets[0][1] if sheets else []
+        data = file_storage.read()
         if not name.endswith(('.csv', '.txt', '.tsv')):
-            raise ValueError('صيغة الملف غير مدعومة — استخدم Excel ‏(.xlsx) أو CSV')
+            from utils.i18n import _
+            raise ValueError(_('صيغة الملف غير مدعومة — استخدم Excel ‏(.xlsx) أو CSV'))
         for enc in ('utf-8-sig', 'cp1256', 'latin-1'):
             try:
                 text = data.decode(enc)
@@ -50,31 +67,47 @@ def read_table(text=None, file_storage=None):
     return [[_clean(c) for c in r] for r in csv.reader(lines, delimiter=delim) if any(c.strip() for c in r)]
 
 
-def to_records(rows, fields):
-    """fields: [(key, [header aliases…])] in the default column order. → (records, used_header: bool)."""
-    if not rows:
-        return [], False
+def find_header(rows, fields, scan=10):
+    """The index of the header row among the first rows (a title or «last update» line may come first),
+    and its column → field mapping; (None, None) without a header."""
     alias = {}
     for key, names in fields:
         for n in [key] + list(names):
             alias[norm(n)] = key
-    first = [norm(c) for c in rows[0]]
-    hits = sum(1 for c in first if c in alias)
-    if hits >= 1 and hits >= len([c for c in first if c]) / 2:
-        mapping = [alias.get(c) for c in first]
-        body = rows[1:]
+    best = (None, None, 0)
+    for i, row in enumerate(rows[:scan]):
+        cells = [norm(c) for c in row]
+        hits = sum(1 for c in cells if c in alias)
+        filled = len([c for c in cells if c])
+        if (hits >= 2 or (hits >= 1 and hits >= filled / 2)) and hits > best[2]:
+            best = (i, [alias.get(c) for c in cells], hits)
+    return best[0], best[1]
+
+
+def to_records(rows, fields, keep_row=False):
+    """fields: [(key, [header aliases…])] in the default column order. → (records, used_header: bool).
+    keep_row: each record also gets «_row», its line number in the sheet."""
+    if not rows:
+        return [], False
+    at, mapping = find_header(rows, fields)
+    if at is not None:
+        body = rows[at + 1:]
+        start = at + 2
     else:
-        mapping = [k for k, _ in fields]
+        mapping = [k for k, _x in fields]
         body = rows
+        start = 1
     out = []
-    for r in body:
+    for n, r in enumerate(body, start):
         rec = {}
         for i, key in enumerate(mapping):
             if key and i < len(r) and r[i] and not rec.get(key):
                 rec[key] = r[i]
         if rec:
+            if keep_row:
+                rec['_row'] = n
             out.append(rec)
-    return out, mapping is not None and body is not rows
+    return out, at is not None
 
 
 def parse_date(v):

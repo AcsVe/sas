@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% from '_ticker.html' import ticker %}
+{% block title %}{{ _('الشريط الإخباري') }}{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>{{ _('الشريط الإخباري') }}</h1>
+  <a class="btn secondary small" href="{{ url_for('admin.settings') }}">{{ _('الإعدادات') }}</a></div>
+<p class="muted" style="margin-bottom:10px">{{ _('يظهر أعلى كل صفحات النظام (وصفحة الدخول إن اخترت ذلك). المعاينة تتغير مع كل تعديل قبل الحفظ.') }}</p>
+{{ ticker(preview, ticker_logo, preview=True) }}
+<form method="post" class="card" data-ticker-form>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="checks" style="margin-bottom:12px">
+    <label><input type="checkbox" name="enabled" value="1" {% if cfg.enabled %}checked{% endif %}> <b>{{ _('تفعيل الشريط') }}</b></label>
+    <label><input type="checkbox" name="on_login" value="1" {% if cfg.on_login %}checked{% endif %}> {{ _('يظهر في صفحة الدخول أيضاً') }}</label>
+    <label><input type="checkbox" name="pause_on_hover" value="1" {% if cfg.pause_on_hover %}checked{% endif %}> {{ _('يتوقف عند مرور المؤشر') }}</label>
+  </div>
+  <div class="row">
+    <div><label>{{ _('الرسائل بالعربية (رسالة في كل سطر)') }}</label>
+      <textarea name="feeds_ar" rows="5" dir="rtl">{{ cfg.feeds_ar|join('\n') }}</textarea></div>
+    <div><label>{{ _('الرسائل بالإنجليزية (رسالة في كل سطر)') }}</label>
+      <textarea name="feeds_en" rows="5" dir="ltr">{{ cfg.feeds_en|join('\n') }}</textarea>
+      <p class="hint">{{ _('إن خلت إحدى اللغتين تُعرض رسائل الأخرى.') }}</p></div>
+  </div>
+  <h2>{{ _('المظهر') }}</h2>
+  <div class="row">
+    <div><label>{{ _('لون النص') }}</label><input type="color" name="fg" value="{{ cfg.fg }}"></div>
+    <div><label>{{ _('لون الخلفية') }}</label><input type="color" name="bg" value="{{ cfg.bg }}"></div>
+    <div><label>{{ _('شفافية الخلفية') }} (%)</label><input type="number" name="opacity" min="0" max="100" value="{{ cfg.opacity }}"></div>
+    <div><label>{{ _('تلاشي الأطراف') }} (%)</label><input type="number" name="mask_fade" min="0" max="30" value="{{ cfg.mask_fade }}"></div>
+  </div>
+  <div class="row">
+    <div><label>{{ _('الخط') }}</label><select name="font">{% for f, l in fonts %}<option value="{{ f }}" {% if cfg.font == f %}selected{% endif %}>{{ _(l) }}</option>{% endfor %}</select></div>
+    <div><label>{{ _('حجم الخط') }} (px)</label><input type="number" name="size" min="10" max="32" value="{{ cfg.size }}"></div>
+    <div><label>{{ _('سماكة الخط') }}</label><select name="weight"><option value="700" {% if cfg.weight == 700 %}selected{% endif %}>{{ _('عريض') }}</option><option value="500" {% if cfg.weight != 700 %}selected{% endif %}>{{ _('عادي') }}</option></select></div>
+  </div>
+  <div class="row">
+    <div><label>{{ _('السرعة') }} ({{ _('بكسل في الثانية') }})</label><input type="number" name="speed" min="10" max="300" value="{{ cfg.speed }}"></div>
+    <div><label>{{ _('اتجاه الحركة') }}</label><select name="direction">
+      <option value="auto" {% if cfg.direction == 'auto' %}selected{% endif %}>{{ _('تلقائي (العربية نحو اليمين، الإنجليزية نحو اليسار)') }}</option>
+      <option value="right" {% if cfg.direction == 'right' %}selected{% endif %}>{{ _('نحو اليمين') }}</option>
+      <option value="left" {% if cfg.direction == 'left' %}selected{% endif %}>{{ _('نحو اليسار') }}</option></select></div>
+  </div>
+  <h2>{{ _('الشعار والفاصل') }}</h2>
+  <div class="row">
+    <div><label>{{ _('الفاصل بين الرسائل') }}</label><select name="separator">{% for s, l in separators %}<option value="{{ s }}" {% if cfg.separator == s %}selected{% endif %}>{{ _(l) }}</option>{% endfor %}</select></div>
+    <div><label>{{ _('صورة الشعار') }}</label><select name="logo">
+      <option value="school" {% if cfg.logo == 'school' %}selected{% endif %}>{{ _('شعار المدرسة (من الإعدادات)') }}</option>
+      <option value="url" {% if cfg.logo == 'url' %}selected{% endif %}>{{ _('صورة من رابط') }}</option>
+      <option value="none" {% if cfg.logo == 'none' %}selected{% endif %}>{{ _('بلا شعار') }}</option></select></div>
+    <div><label>{{ _('رابط صورة الشعار') }}</label><input type="text" name="logo_url" dir="ltr" value="{{ cfg.logo_url }}" placeholder="https://…"></div>
+    <div><label>{{ _('رابط صورة الفاصل') }}</label><input type="text" name="sep_img_url" dir="ltr" value="{{ cfg.sep_img_url }}" placeholder="https://…"></div>
+  </div>
+  <div class="row">
+    <div><label>{{ _('حجم الشعار') }} (px)</label><input type="number" name="logo_size" min="12" max="60" value="{{ cfg.logo_size }}"></div>
+    <div><label>{{ _('سرعة النبض') }} ({{ _('ثانية') }})</label><input type="number" name="logo_pulse_speed" min="2" max="30" value="{{ cfg.logo_pulse_speed }}"></div>
+    <div class="checks" style="align-self:end"><label><input type="checkbox" name="logo_pulse" value="1" {% if cfg.logo_pulse %}checked{% endif %}> {{ _('نبض الشعار') }}</label></div>
+  </div>
+  <button class="btn" type="submit">{{ _('حفظ') }}</button>
+</form>
+{% endblock %}
