@@ -3,12 +3,12 @@
 {% block content %}
 <div class="toolbar">
   <h1>{{ _('سجل الموظفين') }} <span class="count-pill" data-count-for="t-emps">{{ employees|length }}</span></h1>
-  <a class="btn secondary" href="{{ url_for('employees.template') }}">⬇ {{ _('نموذج ملف الاستيراد') }}</a>
+  <a class="btn secondary" href="{{ url_for('employees.template') }}"><i class="fa-solid fa-download" aria-hidden="true"></i> {{ _('نموذج ملف الاستيراد') }}</a>
 </div>
 
 <div class="grid2">
 <details class="card panel" {% if not employees %}open{% endif %}>
-  <summary>➕ {{ _('إضافة موظف') }}</summary>
+  <summary><i class="fa-solid fa-plus" aria-hidden="true"></i> {{ _('إضافة موظف') }}</summary>
   <form method="post" action="{{ url_for('employees.form') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row">
@@ -27,7 +27,7 @@
 </details>
 
 <details class="card panel" {% if not employees %}open{% endif %}>
-  <summary>📋 {{ _('إضافة قائمة أو استيراد ملف') }}</summary>
+  <summary><i class="fa-solid fa-file-import" aria-hidden="true"></i> {{ _('إضافة قائمة أو استيراد ملف') }}</summary>
   <form method="post" action="{{ url_for('employees.import_list') }}" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>{{ _('الصق القائمة (سطر لكل موظف، والأعمدة مفصولة بفاصلة أو Tab كما تُنسخ من Excel)') }}</label>

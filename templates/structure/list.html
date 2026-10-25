@@ -7,13 +7,13 @@
   <h1>{{ _(spec.title) }} <span class="count-pill" data-count-for="t-{{ key }}">{{ rows|length }}</span></h1>
   <div class="actions-row">
   {% if parent_id %}<a class="btn secondary small" href="{{ url_for('structure.items', key=key) }}">{{ _('عرض الكل') }}</a>{% endif %}
-  {% if key == 'periods' %}<a class="btn small" href="{{ url_for('structure.periods_import') }}">⬆ {{ _('استيراد الحصص من نظام الجرس') }}</a>{% endif %}
-  {% if key in ('stages', 'grades', 'sections') and has_perm('students.manage') %}<a class="btn small" href="{{ url_for('students.import_list') }}">📋 {{ _('بناء الشعب من قوائم الطلبة') }}</a>{% endif %}
+  {% if key == 'periods' %}<a class="btn small" href="{{ url_for('structure.periods_import') }}"><i class="fa-solid fa-upload" aria-hidden="true"></i> {{ _('استيراد الحصص من نظام الجرس') }}</a>{% endif %}
+  {% if key in ('stages', 'grades', 'sections') and has_perm('students.manage') %}<a class="btn small" href="{{ url_for('students.import_list') }}"><i class="fa-solid fa-file-import" aria-hidden="true"></i> {{ _('بناء الشعب من قوائم الطلبة') }}</a>{% endif %}
   </div>
 </div>
 
 <details class="card panel" {% if not rows %}open{% endif %}>
-  <summary>➕ {{ _('إضافة') }} {{ _(spec.singular) }}</summary>
+  <summary><i class="fa-solid fa-plus" aria-hidden="true"></i> {{ _('إضافة') }} {{ _(spec.singular) }}</summary>
   <form method="post" action="{{ url_for('structure.create', key=key) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row">

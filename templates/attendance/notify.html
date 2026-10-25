@@ -13,7 +13,7 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {% for i in ids %}<input type="hidden" name="ids" value="{{ i }}">{% endfor %}
   <div class="checks" style="margin-bottom:10px"><label><input type="checkbox" name="resend" value="1" {% if resend %}checked{% endif %}> {{ _('إعادة الإرسال لمن أُشعر مسبقًا') }}</label></div>
-  <button class="btn" type="submit" {% if not plan.groups and not plan.already %}disabled{% endif %} data-confirm="{{ _('إرسال الإشعار إلى أولياء أمور') }} {{ plan.groups|length }} {{ _('من الطلبة؟') }}">✉ {{ _('إرسال') }}</button>
+  <button class="btn" type="submit" {% if not plan.groups and not plan.already %}disabled{% endif %} data-confirm="{{ _('إرسال الإشعار إلى أولياء أمور') }} {{ plan.groups|length }} {{ _('من الطلبة؟') }}"><i class="fa-solid fa-envelope" aria-hidden="true"></i> {{ _('إرسال') }}</button>
   <button class="btn secondary" type="submit" name="preview" value="1">{{ _('تحديث القائمة') }}</button>
   <a class="btn secondary" href="{{ url_for('attendance.records') }}">{{ _('إلغاء') }}</a>
 </form>

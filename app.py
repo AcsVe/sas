@@ -166,7 +166,14 @@ def _register_request_hooks(app):
             'superadmin': g.get('superadmin'),
             'has_perm': has_perm,
             'accent': (tenant.accent_color if tenant else app.config['ACCENT_COLOR']),
+            'now_year': _amman_year(),
         }
+
+
+def _amman_year():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo('Asia/Amman')).year
 
 
 def _register_pwa_routes(app):
@@ -189,7 +196,7 @@ def _register_pwa_routes(app):
         data = {
             'name': _('غياب الطلبة والاستئذان — {name}', name=name), 'short_name': _('غياب الطلبة'),
             'start_url': '/', 'scope': '/', 'display': 'standalone',
-            'background_color': '#eef3f5', 'theme_color': '#1B3358',
+            'background_color': '#f0f4fa', 'theme_color': '#0C67EC',
             'lang': 'ar', 'dir': 'rtl',
             'icons': [
                 {'src': '/static/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},

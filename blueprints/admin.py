@@ -608,12 +608,20 @@ def settings():
             t.mail_sender = sender or None
             t.email_footer = (f.get('email_footer') or '').strip() or None
             t.form_footer = (f.get('form_footer') or '').strip() or None
-            if 'primary' in logos:
-                t.logo_primary = logos['primary']
-            if 'secondary' in logos:
-                t.logo_secondary = logos['secondary']
-            audit('settings.updated', 'tenant', t.id, logos=sorted(logos))
+            removed = []
+            for which in ('primary', 'secondary'):
+                if which in logos:
+                    setattr(t, f'logo_{which}', logos[which])
+                elif f.get(f'remove_logo_{which}') and getattr(t, f'logo_{which}'):
+                    setattr(t, f'logo_{which}', None)   # back to the system icon
+                    removed.append(which)
+            audit('settings.updated', 'tenant', t.id, logos=sorted(logos), removed=removed)
             db.session.commit()
             flash(_('تم حفظ الإعدادات'), 'success')
             return redirect(url_for('admin.settings'))
-    return render_template('admin/settings.html', t=t, errors=errors), (400 if errors else 200)
+    cfg = current_app.config
+    graph = {'ready': all(cfg.get(k) for k in ('MS_TENANT_ID', 'MS_CLIENT_ID', 'MS_CLIENT_SECRET')),
+             'tenant': bool(cfg.get('MS_TENANT_ID')), 'client': bool(cfg.get('MS_CLIENT_ID')),
+             'secret': bool(cfg.get('MS_CLIENT_SECRET')),
+             'sender': t.mail_sender or cfg.get('MS_SENDER_EMAIL') or ''}
+    return render_template('admin/settings.html', t=t, errors=errors, graph=graph), (400 if errors else 200)

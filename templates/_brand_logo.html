@@ -1,0 +1,3 @@
+{# The organization's logo, or the system icon until one is uploaded in Settings. #}
+{% if current_tenant and current_tenant.logo_primary %}<img class="brand-logo" src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='primary') }}" alt="">
+{% else %}<img class="brand-logo sys-icon" src="{{ url_for('static', filename='brand/system.svg') }}" alt="">{% endif %}

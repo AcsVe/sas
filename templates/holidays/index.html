@@ -5,7 +5,7 @@
 <div class="toolbar"><h1>{{ _('العطل') }} <span class="count-pill" data-count-for="t-hol">{{ rows|length }}</span></h1></div>
 {% if has_perm('holidays.manage') %}
 <details class="card panel" {% if not rows %}open{% endif %}>
-  <summary>➕ {{ _('إضافة عطلة') }}</summary>
+  <summary><i class="fa-solid fa-plus" aria-hidden="true"></i> {{ _('إضافة عطلة') }}</summary>
   <form method="post" action="{{ url_for('holidays.form') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {{ holiday_fields({}, choices, scopes, sees_all) }}

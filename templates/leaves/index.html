@@ -4,8 +4,8 @@
 <div class="toolbar">
   <h1>{{ _('الخروج من الحصة') }} <span class="count-pill" data-count-for="t-leaves">{{ rows|length }}</span></h1>
   <div class="actions-row">
-    <a class="btn small {{ '' if out_only else 'secondary' }}" href="{{ url_for('leaves.index', section=section.id if section else None, date=day.isoformat(), out=None if out_only else 1) }}">🚪 {{ _('خارج الصف الآن') }}</a>
-    <a class="btn secondary small" href="{{ url_for('leaves.index', section=section.id if section else None, date=day.isoformat(), date_to=d_to.isoformat() if d_to else None, export='xlsx') }}">⬇ {{ _('تصدير Excel') }}</a>
+    <a class="btn small {{ '' if out_only else 'secondary' }}" href="{{ url_for('leaves.index', section=section.id if section else None, date=day.isoformat(), out=None if out_only else 1) }}"><i class="fa-solid fa-door-open" aria-hidden="true"></i> {{ _('خارج الصف الآن') }}</a>
+    <a class="btn secondary small" href="{{ url_for('leaves.index', section=section.id if section else None, date=day.isoformat(), date_to=d_to.isoformat() if d_to else None, export='xlsx') }}"><i class="fa-solid fa-download" aria-hidden="true"></i> {{ _('تصدير Excel') }}</a>
   </div>
 </div>
 <form method="get" class="card">
@@ -20,7 +20,7 @@
 
 {% if has_perm('class_leave.record') %}
 <details class="card panel" {% if section %}open{% endif %}>
-  <summary>➕ {{ _('تسجيل خروج من الحصة') }}</summary>
+  <summary><i class="fa-solid fa-plus" aria-hidden="true"></i> {{ _('تسجيل خروج من الحصة') }}</summary>
   {% if not section %}<p class="muted">{{ _('اختر الشعبة من الأعلى لتظهر قائمة طلبتها.') }}</p>
   {% else %}
   <form method="post" action="{{ url_for('leaves.create') }}">
@@ -44,7 +44,7 @@
 <form class="bulk-bar" method="post" action="{{ url_for('leaves.bulk') }}" data-bulk-for="t-leaves">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <span>{{ _('المحدد:') }} <b data-selected-count>0</b></span>
-  <button class="btn small ok" name="action" value="return">↩ {{ _('عاد الآن') }}</button>
+  <button class="btn small ok" name="action" value="return"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> {{ _('عاد الآن') }}</button>
   {% if has_perm('class_leave.approve') %}
   <button class="btn small secondary" name="action" value="approve">{{ _('اعتماد') }}</button>
   <button class="btn small secondary" name="action" value="reject">{{ _('رفض') }}</button>

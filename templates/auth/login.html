@@ -1,19 +1,15 @@
 {% extends 'auth/_layout.html' %}
+{% from 'auth/_fields.html' import field %}
 {% block title %}{{ _('تسجيل الدخول') }}{% endblock %}
 {% block heading %}{{ _('تسجيل الدخول') }}{% endblock %}
 {% block body %}
 {% if error %}<div class="alert danger">{{ _(error) }}</div>{% endif %}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  {% if need_org %}
-  <div class="field"><label for="org">{{ _('رمز المنظمة') }}</label>
-    <input type="text" id="org" name="org" autocomplete="organization" dir="ltr" required></div>
-  {% endif %}
-  <div class="field"><label for="username">{{ _('اسم المستخدم أو البريد') }}</label>
-    <input type="text" id="username" name="username" autocomplete="username" dir="ltr" required autofocus></div>
-  <div class="field"><label for="password">{{ _('كلمة المرور') }}</label>
-    <input type="password" id="password" name="password" autocomplete="current-password" dir="ltr" required></div>
-  <button class="btn" type="submit">{{ _('دخول') }}</button>
+  {% if need_org %}{{ field('org', _('رمز المنظمة'), 'fa-building', autocomplete='organization') }}{% endif %}
+  {{ field('username', _('اسم المستخدم أو البريد'), 'fa-user', autocomplete='username', autofocus=True) }}
+  {{ field('password', _('كلمة المرور'), 'fa-lock', type='password', autocomplete='current-password') }}
+  <button class="btn" type="submit"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> {{ _('دخول') }}</button>
 </form>
 <div class="links"><a href="{{ url_for('auth.forgot') }}">{{ _('نسيت كلمة المرور؟') }}</a></div>
 {% endblock %}

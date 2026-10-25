@@ -10,8 +10,8 @@
         {% for sec in sections %}<option value="{{ sec.id }}" {% if section_id == sec.id %}selected{% endif %}>{{ label(sec.grade.stage) }} — {{ sec.full_name }}</option>{% endfor %}</select>
       <button class="btn small secondary" type="submit">{{ _('عرض') }}</button>
     </form>
-    <a class="btn secondary small" href="{{ url_for('students.index', section=section_id or None, export='xlsx') }}">⬇ {{ _('تصدير Excel') }}</a>
-    {% if has_perm('students.manage') %}<a class="btn small" href="{{ url_for('students.import_list') }}">📋 {{ _('استيراد قائمة أو ملف') }}</a>{% endif %}
+    <a class="btn secondary small" href="{{ url_for('students.index', section=section_id or None, export='xlsx') }}"><i class="fa-solid fa-download" aria-hidden="true"></i> {{ _('تصدير Excel') }}</a>
+    {% if has_perm('students.manage') %}<a class="btn small" href="{{ url_for('students.import_list') }}"><i class="fa-solid fa-file-import" aria-hidden="true"></i> {{ _('استيراد قائمة أو ملف') }}</a>{% endif %}
   </div>
 </div>
 
@@ -19,7 +19,7 @@
 {% if not sections %}<div class="alert warning">{{ _('لا توجد شعب ضمن نطاقك بعد — أضف المراحل والصفوف والشعب من «الهيكل المدرسي» أو اطلب ربط حسابك بمرحلة.') }}</div>{% endif %}
 <div class="grid2">
 <details class="card panel" {% if not students %}open{% endif %}>
-  <summary>➕ {{ _('إضافة طالب') }}</summary>
+  <summary><i class="fa-solid fa-plus" aria-hidden="true"></i> {{ _('إضافة طالب') }}</summary>
   <form method="post" action="{{ url_for('students.form') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {{ student_fields({}, sections, genders, section_id) }}

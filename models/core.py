@@ -18,7 +18,7 @@ class Tenant(db.Model):
     name_ar = db.Column(db.String(200), nullable=False)
     name_en = db.Column(db.String(200))
     domain = db.Column(db.String(200), unique=True)  # host or subdomain, optional
-    accent_color = db.Column(db.String(9), default='#3D5A80', nullable=False)
+    accent_color = db.Column(db.String(9), default='#0C67EC', nullable=False)
     logo_primary = db.Column(db.String(300))    # file name inside UPLOAD_DIR/tenants/<id>/
     logo_secondary = db.Column(db.String(300))
     mail_sender = db.Column(db.String(200))     # overrides MS_SENDER_EMAIL when set

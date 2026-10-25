@@ -74,7 +74,7 @@ def build_config(overrides=None):
         'SQLALCHEMY_ENGINE_OPTIONS': {'pool_pre_ping': True, 'pool_recycle': 280},
         'UPLOAD_DIR': upload_dir,
         'MAX_CONTENT_LENGTH': int(os.environ.get('MAX_UPLOAD_MB', '25')) * 1024 * 1024,
-        'ACCENT_COLOR': os.environ.get('ACCENT_COLOR', '#3D5A80'),
+        'ACCENT_COLOR': os.environ.get('ACCENT_COLOR', '#0C67EC'),
         'TIMEZONE': os.environ.get('TIMEZONE', 'Asia/Amman'),
         # Microsoft Graph mail — same settings as the venues system
         'MS_TENANT_ID': os.environ.get('MS_TENANT_ID', ''),

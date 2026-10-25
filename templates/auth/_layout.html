@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html lang="{{ lang }}" dir="{{ dir }}">
-<head>{% include '_head.html' %}<title>{% block title %}{% endblock %}</title></head>
-<body>
+<head>{% include '_head.html' %}<title>{% block title %}{% endblock %} — {{ pick(current_tenant.name_ar, current_tenant.name_en) if current_tenant else _('غياب الطلبة والاستئذان') }}</title></head>
+<body class="auth">
 {% if ticker_view %}{% from '_ticker.html' import ticker %}{{ ticker(ticker_view, ticker_logo) }}{% endif %}
 <div class="auth-wrap"><div class="auth-card">
   <div class="auth-lang">{% include '_lang.html' %}</div>
-  <div class="logos">
-    {% if current_tenant %}
-      <img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='primary') }}" alt="">
-      {% if current_tenant.logo_secondary %}<img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='secondary') }}" alt="">{% endif %}
-    {% else %}<img src="{{ url_for('static', filename='logo.png') }}" alt="">{% endif %}
-  </div>
+  <div class="logo-circle">{% include '_brand_logo.html' %}</div>
+  {% if current_tenant and current_tenant.logo_secondary %}<div class="logos2"><img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='secondary') }}" alt=""></div>{% endif %}
+  <div class="brand-title">{% block brand %}{{ pick(current_tenant.name_ar, current_tenant.name_en) if current_tenant else _('غياب الطلبة والاستئذان') }}{% endblock %}</div>
+  <div class="brand-sub">{{ _('نظام غياب الطلبة والاستئذان') }}</div>
   <h1>{% block heading %}{% endblock %}</h1>
-  <p class="sub">{{ pick(current_tenant.name_ar, current_tenant.name_en) if current_tenant else _('نظام غياب الطلبة والاستئذان') }}</p>
   {% include '_flash.html' %}
   {% block body %}{% endblock %}
 </div></div>
+<footer class="auth-foot">© {{ now_year }} <b>{{ pick(current_tenant.name_ar, current_tenant.name_en) if current_tenant else _('غياب الطلبة والاستئذان') }}</b></footer>
 </body></html>

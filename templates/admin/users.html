@@ -50,7 +50,7 @@
         <div><b>{{ u.full_name }}</b><br><small class="mono muted">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</small></div>
       </div>
       <div>{% for r in u.roles %}<span class="badge">{{ _(r.name) }}</span> {% else %}<span class="badge warn">{{ _('بلا دور') }}</span>{% endfor %} {{ status(u) }}</div>
-      {% if u.departments %}<div class="muted" style="font-size:.85rem">🏢 {% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}</div>{% endif %}
+      {% if u.departments %}<div class="muted" style="font-size:.85rem"><i class="fa-solid fa-building" aria-hidden="true"></i> {% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}</div>{% endif %}
       <div class="tasks">
         {% for g, items in groups|dictsort %}<div><b>{{ g }}:</b> {{ items|join(_('، ')) }}</div>
         {% else %}<span class="muted">{{ _('لا مهام مسندة — أسند دورًا من «تعديل».') }}</span>{% endfor %}

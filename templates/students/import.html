@@ -4,7 +4,7 @@
 <div class="toolbar">
   <h1>{{ _('استيراد الطلبة وبناء الشعب') }}</h1>
   <div class="actions-row">
-    <a class="btn secondary small" href="{{ url_for('students.template_xlsx') }}">⬇ {{ _('نموذج ملف الاستيراد') }}</a>
+    <a class="btn secondary small" href="{{ url_for('students.template_xlsx') }}"><i class="fa-solid fa-download" aria-hidden="true"></i> {{ _('نموذج ملف الاستيراد') }}</a>
     <a class="btn secondary small" href="{{ url_for('students.index') }}">{{ _('الطلبة') }}</a>
   </div>
 </div>
@@ -67,7 +67,7 @@
       <td>{% if sh.copy_of %}<span class="badge {{ 'warn' if sh.name in plan.skipped else '' }}">{{ _('{n} من طلبتها في «{s}»', n=sh.overlap, s=sh.copy_of) }}</span>
         {% if sh.name in plan.skipped %} <small class="muted">{{ _('نسخة — تُركت') }}</small>{% endif %}{% endif %}</td></tr>{% endfor %}</tbody>
   </table></div>
-  <button class="btn secondary small" name="refresh" value="1" formnovalidate style="margin-top:10px">↻ {{ _('إعادة المعاينة بالأوراق المحددة') }}</button>
+  <button class="btn secondary small" name="refresh" value="1" formnovalidate style="margin-top:10px"><i class="fa-solid fa-rotate" aria-hidden="true"></i> {{ _('إعادة المعاينة بالأوراق المحددة') }}</button>
 </div>
 {% endif %}
 {% if creates or plan.new_stages %}
@@ -134,7 +134,7 @@
 </details>
 
 <div class="actions-row">
-  <button class="btn" type="submit" {% if creates and not can_create %}disabled{% endif %}>✔ {{ _('تنفيذ') }}</button>
+  <button class="btn" type="submit" {% if creates and not can_create %}disabled{% endif %}><i class="fa-solid fa-check" aria-hidden="true"></i> {{ _('تنفيذ') }}</button>
   <a class="btn secondary" href="{{ url_for('students.import_list') }}">{{ _('ملف آخر') }}</a>
   <span class="muted">{{ _('الملف') }}: {{ plan.file }}</span>
 </div>

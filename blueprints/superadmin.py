@@ -92,14 +92,14 @@ def _tenant_fields(t, errors):
     t.slug, t.domain = slug, domain
     t.name_ar = (f.get('name_ar') or '').strip()
     t.name_en = (f.get('name_en') or '').strip() or None
-    accent = (f.get('accent_color') or '#3D5A80').strip()
-    t.accent_color = accent if re.fullmatch(r'#[0-9A-Fa-f]{6}', accent) else '#3D5A80'
+    accent = (f.get('accent_color') or '#0C67EC').strip()
+    t.accent_color = accent if re.fullmatch(r'#[0-9A-Fa-f]{6}', accent) else '#0C67EC'
 
 
 @super_bp.route('/tenants/new', methods=['GET', 'POST'])
 @superadmin_required
 def tenant_new():
-    t = Tenant(is_active=True, accent_color='#3D5A80')
+    t = Tenant(is_active=True, accent_color='#0C67EC')
     errors = []
     if request.method == 'POST':
         _tenant_fields(t, errors)

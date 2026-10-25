@@ -16,7 +16,7 @@ def test_superadmin_creates_tenant(app, ctx):
     assert c.post('/super/login', data={'username': 'root', 'password': PASSWORD}).status_code == 302
     r = c.post('/super/tenants/new', data={
         'slug': 'raed', 'name_ar': 'مدرسة الرائد العربي', 'name_en': 'Al-Raed',
-        'accent_color': '#3D5A80', 'admin_username': 'hradmin', 'admin_full_name': 'مدير',
+        'accent_color': '#0C67EC', 'admin_username': 'hradmin', 'admin_full_name': 'مدير',
         'admin_email': 'hr@raed.test', 'admin_password': 'Temp-Pass-2026'})
     assert r.status_code == 302
     with tenant_bypass():

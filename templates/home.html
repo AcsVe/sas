@@ -16,41 +16,41 @@
 <h2 style="margin:6px 0 10px">{{ _('الوصول السريع') }}</h2>
 <div class="grid">
   {% if has_perm('attendance.record') %}
-  <a class="tile" href="{{ url_for('attendance.daily') }}"><span class="ic">📝</span><b>{{ _('التسجيل اليومي') }}</b><small>{{ _('تحديد الغائبين في الشعبة دفعة واحدة') }}</small></a>
+  <a class="tile" href="{{ url_for('attendance.daily') }}"><span class="ic"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><b>{{ _('التسجيل اليومي') }}</b><small>{{ _('تحديد الغائبين في الشعبة دفعة واحدة') }}</small></a>
   {% endif %}
   {% if has_perm('attendance.record') or has_perm('attendance.approve') or has_perm('reports.view') %}
-  <a class="tile" href="{{ url_for('attendance.records') }}"><span class="ic">📋</span><b>{{ _('سجلات الغياب') }}</b><small>{{ _('الاعتماد والرفض والإشعار والتصدير') }}</small></a>
+  <a class="tile" href="{{ url_for('attendance.records') }}"><span class="ic"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span><b>{{ _('سجلات الغياب') }}</b><small>{{ _('الاعتماد والرفض والإشعار والتصدير') }}</small></a>
   {% endif %}
   {% if has_perm('class_leave.record') or has_perm('class_leave.approve') %}
-  <a class="tile" href="{{ url_for('leaves.index') }}"><span class="ic">🚪</span><b>{{ _('الخروج من الحصة') }}</b><small>{{ _('المكتبة والعيادة والإرشاد والعودة') }}</small></a>
-  <a class="tile" href="{{ url_for('timetable.mine') }}"><span class="ic">🗓️</span><b>{{ _('حصصي') }}</b><small>{{ _('الشعب التي أدرّسها') }}</small></a>
+  <a class="tile" href="{{ url_for('leaves.index') }}"><span class="ic"><i class="fa-solid fa-door-open" aria-hidden="true"></i></span><b>{{ _('الخروج من الحصة') }}</b><small>{{ _('المكتبة والعيادة والإرشاد والعودة') }}</small></a>
+  <a class="tile" href="{{ url_for('timetable.mine') }}"><span class="ic"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></span><b>{{ _('حصصي') }}</b><small>{{ _('الشعب التي أدرّسها') }}</small></a>
   {% endif %}
   {% if has_perm('guardians.notify') %}
-  <a class="tile" href="{{ url_for('attendance.notify_today') }}"><span class="ic">✉️</span><b>{{ _('إشعار أولياء الأمور') }}</b><small>{{ _('إرسال يدوي لغياب اليوم') }}</small></a>
+  <a class="tile" href="{{ url_for('attendance.notify_today') }}"><span class="ic"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span><b>{{ _('إشعار أولياء الأمور') }}</b><small>{{ _('إرسال يدوي لغياب اليوم') }}</small></a>
   {% endif %}
   {% if has_perm('students.view') or has_perm('students.manage') %}
-  <a class="tile" href="{{ url_for('students.index') }}"><span class="ic">🎓</span><b>{{ _('الطلبة') }}</b><small>{{ _('الإضافة والاستيراد والنقل وملف الطالب') }}</small></a>
+  <a class="tile" href="{{ url_for('students.index') }}"><span class="ic"><i class="fa-solid fa-user-graduate" aria-hidden="true"></i></span><b>{{ _('الطلبة') }}</b><small>{{ _('الإضافة والاستيراد والنقل وملف الطالب') }}</small></a>
   {% endif %}
   {% if has_perm('reports.view') %}
-  <a class="tile" href="{{ url_for('reports.index') }}"><span class="ic">📊</span><b>{{ _('التقارير') }}</b><small>{{ _('النسب والمقارنة والطباعة') }}</small></a>
+  <a class="tile" href="{{ url_for('reports.index') }}"><span class="ic"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span><b>{{ _('التقارير') }}</b><small>{{ _('النسب والمقارنة والطباعة') }}</small></a>
   {% endif %}
   {% if has_perm('holidays.manage') or has_perm('holidays.approve') %}
-  <a class="tile" href="{{ url_for('holidays.index') }}"><span class="ic">🏖️</span><b>{{ _('العطل') }}</b><small>{{ _('للمدرسة أو لمراحل أو صفوف أو شعب') }}</small></a>
+  <a class="tile" href="{{ url_for('holidays.index') }}"><span class="ic"><i class="fa-solid fa-umbrella-beach" aria-hidden="true"></i></span><b>{{ _('العطل') }}</b><small>{{ _('للمدرسة أو لمراحل أو صفوف أو شعب') }}</small></a>
   {% endif %}
   {% if has_perm('structure.manage') or has_perm('timetable.manage') %}
-  <a class="tile" href="{{ url_for('structure.index') }}"><span class="ic">🏫</span><b>{{ _('الهيكل المدرسي') }}</b><small>{{ _('السنوات والمراحل والصفوف والشعب والحصص') }}</small></a>
+  <a class="tile" href="{{ url_for('structure.index') }}"><span class="ic"><i class="fa-solid fa-sitemap" aria-hidden="true"></i></span><b>{{ _('الهيكل المدرسي') }}</b><small>{{ _('السنوات والمراحل والصفوف والشعب والحصص') }}</small></a>
   {% endif %}
   {% if has_perm('employees.manage') %}
-  <a class="tile" href="{{ url_for('employees.index') }}"><span class="ic">🧑‍💼</span><b>{{ _('سجل الموظفين') }}</b><small>{{ _('إضافة واستيراد وإنشاء حسابات') }}</small></a>
+  <a class="tile" href="{{ url_for('employees.index') }}"><span class="ic"><i class="fa-solid fa-id-badge" aria-hidden="true"></i></span><b>{{ _('سجل الموظفين') }}</b><small>{{ _('إضافة واستيراد وإنشاء حسابات') }}</small></a>
   {% endif %}
   {% if has_perm('users.manage') %}
-  <a class="tile" href="{{ url_for('admin.users') }}"><span class="ic">👥</span><b>{{ _('المستخدمون والأدوار') }}</b><small>{{ _('الحسابات والمهام وربط المراحل') }}</small></a>
+  <a class="tile" href="{{ url_for('admin.users') }}"><span class="ic"><i class="fa-solid fa-users-gear" aria-hidden="true"></i></span><b>{{ _('المستخدمون والأدوار') }}</b><small>{{ _('الحسابات والمهام وربط المراحل') }}</small></a>
   {% endif %}
   {% if has_perm('email_log.view') %}
-  <a class="tile" href="{{ url_for('admin.email_log', failed=1) }}"><span class="ic">📮</span><b>{{ _('أخطاء البريد') }}</b><small>{{ _('رسائل لم تصل وسبب الفشل') }}</small></a>
+  <a class="tile" href="{{ url_for('admin.email_log', failed=1) }}"><span class="ic"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span><b>{{ _('أخطاء البريد') }}</b><small>{{ _('رسائل لم تصل وسبب الفشل') }}</small></a>
   {% endif %}
   {% if has_perm('audit.view') %}
-  <a class="tile" href="{{ url_for('admin.audit_log') }}"><span class="ic">📜</span><b>{{ _('سجل التدقيق') }}</b><small>{{ _('من فعل ماذا ومتى') }}</small></a>
+  <a class="tile" href="{{ url_for('admin.audit_log') }}"><span class="ic"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span><b>{{ _('سجل التدقيق') }}</b><small>{{ _('من فعل ماذا ومتى') }}</small></a>
   {% endif %}
 </div>
 {% endblock %}

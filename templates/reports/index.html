@@ -5,8 +5,8 @@
 <div class="toolbar">
   <h1>{{ _('تقرير الغياب') }} <small class="muted mono">{{ d_from }} — {{ d_to }}</small></h1>
   <div class="actions-row no-print">
-    <a class="btn secondary small" href="{{ url_for('reports.index', date_from=d_from.isoformat(), date_to=d_to.isoformat(), stage=stage_id, export='xlsx') }}">⬇ {{ _('تصدير Excel') }}</a>
-    <a class="btn secondary small" href="{{ url_for('reports.index', date_from=d_from.isoformat(), date_to=d_to.isoformat(), stage=stage_id, print=1) }}">🖨 {{ _('نسخة للطباعة') }}</a>
+    <a class="btn secondary small" href="{{ url_for('reports.index', date_from=d_from.isoformat(), date_to=d_to.isoformat(), stage=stage_id, export='xlsx') }}"><i class="fa-solid fa-download" aria-hidden="true"></i> {{ _('تصدير Excel') }}</a>
+    <a class="btn secondary small" href="{{ url_for('reports.index', date_from=d_from.isoformat(), date_to=d_to.isoformat(), stage=stage_id, print=1) }}"><i class="fa-solid fa-print" aria-hidden="true"></i> {{ _('نسخة للطباعة') }}</a>
     <a class="btn secondary small" href="{{ url_for('reports.compare') }}">{{ _('مقارنة فترتين') }}</a>
   </div>
 </div>

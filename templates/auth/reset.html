@@ -1,4 +1,5 @@
 {% extends 'auth/_layout.html' %}
+{% from 'auth/_fields.html' import field %}
 {% block title %}{{ _('تعيين كلمة المرور') }}{% endblock %}
 {% block heading %}{{ _('تعيين كلمة مرور جديدة') }}{% endblock %}
 {% block body %}
@@ -8,12 +9,10 @@
 {% else %}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="field"><label for="password">{{ _('كلمة المرور الجديدة') }}</label>
-    <input type="password" id="password" name="password" autocomplete="new-password" dir="ltr" required></div>
-  <div class="field"><label for="confirm">{{ _('تأكيدها') }}</label>
-    <input type="password" id="confirm" name="confirm" autocomplete="new-password" dir="ltr" required></div>
+  {{ field('password', _('كلمة المرور الجديدة'), 'fa-lock', type='password', autocomplete='new-password', autofocus=True) }}
+  {{ field('confirm', _('تأكيدها'), 'fa-lock', type='password', autocomplete='new-password') }}
   <p class="hint">10 {{ _('أحرف على الأقل، وتحتوي حرفًا ورقمًا.') }}</p>
-  <button class="btn" type="submit">{{ _('حفظ') }}</button>
+  <button class="btn" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ _('حفظ') }}</button>
 </form>
 {% endif %}
 {% endblock %}

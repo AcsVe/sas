@@ -2,26 +2,44 @@
 {% block title %}{{ _('الإعدادات') }}{% endblock %}
 {% block content %}
 <h1>{{ _('إعدادات المنظمة') }}</h1>
-<div class="card"><form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card"><h2><i class="fa-solid fa-building" aria-hidden="true"></i> {{ _('الهوية') }}</h2>
   <div class="row">
-    <div><label>{{ _('الاسم بالعربية') }}</label><input type="text" name="name_ar" value="{{ t.name_ar }}" required></div>
+    <div><label>{{ _('الاسم بالعربية') }}</label><input type="text" name="name_ar" value="{{ t.name_ar }}" required>
+      <p class="hint">{{ _('الاسم الطويل يظهر تحت الشعار على عدة أسطر.') }}</p></div>
     <div><label>{{ _('الاسم بالإنجليزية') }}</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
-    <div><label>{{ _('اللون الأساسي') }}</label><input type="text" name="accent_color" value="{{ t.accent_color }}" dir="ltr"></div>
+    <div><label>{{ _('اللون الأساسي') }}</label><input type="color" name="accent_color" value="{{ t.accent_color }}">
+      <p class="hint">{{ _('الافتراضي:') }} <span class="mono">#0C67EC</span></p></div>
   </div>
+  <div class="row">
+    {% for which, text in (('primary', _('الشعار الأول')), ('secondary', _('الشعار الثاني'))) %}
+    <div><label>{{ text }}</label>
+      <div class="logo-pick">
+        {% if t['logo_' ~ which] %}<img src="{{ url_for('tenant_logo', tenant_id=t.id, which=which) }}" alt="">
+        {% elif which == 'primary' %}<img src="{{ url_for('static', filename='brand/system.svg') }}" alt="">{% else %}<span class="logo-empty"><i class="fa-regular fa-image" aria-hidden="true"></i></span>{% endif %}
+        <div><input type="file" name="logo_{{ which }}" accept="image/png,image/jpeg,image/webp">
+        {% if t['logo_' ~ which] %}<label class="checks"><input type="checkbox" name="remove_logo_{{ which }}" value="1"> {{ _('إزالة الشعار') }}</label>{% endif %}</div>
+      </div>
+      <p class="hint">{% if which == 'primary' %}{{ _('إلى أن يُرفع شعار تظهر أيقونة النظام.') }}{% else %}{{ _('يظهر في صفحة الدخول وفي التقارير المطبوعة.') }}{% endif %}</p></div>
+    {% endfor %}
+  </div></div>
+  <div class="card"><h2><i class="fa-solid fa-envelope" aria-hidden="true"></i> {{ _('البريد') }}</h2>
   <div class="row">
     <div><label>{{ _('بريد المرسل (اختياري)') }}</label><input type="email" name="mail_sender" value="{{ t.mail_sender or '' }}" dir="ltr">
       <p class="hint">{{ _('إن ترك فارغًا يُستخدم MS_SENDER_EMAIL من config.env.') }}</p></div>
     <div><label>{{ _('تذييل البريد') }}</label><input type="text" name="email_footer" value="{{ t.email_footer or '' }}"></div>
     <div><label>{{ _('تذييل التقارير المطبوعة') }}</label><input type="text" name="form_footer" value="{{ t.form_footer or '' }}"></div>
   </div>
-  <div class="row">
-    <div><label>{{ _('الشعار الأول') }}</label><input type="file" name="logo_primary" accept="image/png,image/jpeg,image/webp">
-      <img src="{{ url_for('tenant_logo', tenant_id=t.id, which='primary') }}" alt="" style="height:50px;margin-top:6px"></div>
-    <div><label>{{ _('الشعار الثاني') }}</label><input type="file" name="logo_secondary" accept="image/png,image/jpeg,image/webp">
-      {% if t.logo_secondary %}<img src="{{ url_for('tenant_logo', tenant_id=t.id, which='secondary') }}" alt="" style="height:50px;margin-top:6px">{% endif %}</div>
-  </div>
-  <button class="btn" type="submit">{{ _('حفظ') }}</button>
-</form></div>
-
+  <div class="graph-status">
+    <b><i class="fa-brands fa-microsoft" aria-hidden="true"></i> Microsoft Graph</b>
+    {% if graph.ready %}<span class="badge ok">{{ _('مضبوط') }}</span>{% else %}<span class="badge bad">{{ _('غير مضبوط') }}</span>{% endif %}
+    <span class="badge {{ 'ok' if graph.tenant else 'bad' }}">Tenant ID</span>
+    <span class="badge {{ 'ok' if graph.client else 'bad' }}">Client ID</span>
+    <span class="badge {{ 'ok' if graph.secret else 'bad' }}">Client Secret</span>
+    <span class="muted">{{ _('المرسل:') }} <span class="mono">{{ graph.sender or '—' }}</span></span>
+    <p class="hint">{{ _('تُضبط هذه القيم في config.env عند التثبيت (1_setup.bat) ولا تُعرض هنا.') }}</p>
+  </div></div>
+  <button class="btn" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ _('حفظ') }}</button>
+</form>
 {% endblock %}

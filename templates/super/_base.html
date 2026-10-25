@@ -1,11 +1,31 @@
 <!DOCTYPE html>
 <html lang="{{ lang }}" dir="{{ dir }}">
 <head>{% include '_head.html' %}<title>{{ _('المدير العام') }}</title></head>
-<body>
-<header class="topbar"><span class="brand">⚙️ {{ _('المدير العام') }}</span>
-<nav><a href="{{ url_for('super.tenants') }}">{{ _('المنظمات') }}</a></nav>
-<div class="who"><span>{{ superadmin.username }}</span>
-<form method="post" action="{{ url_for('super.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">{{ _('خروج') }}</button></form></div>
+<body class="app">
+<div class="nav-overlay" data-nav-close></div>
+<aside class="sidebar" id="sidebar" aria-label="{{ _('القائمة الرئيسية') }}">
+  <a class="side-brand" href="{{ url_for('super.tenants') }}">
+    <img class="brand-logo sys-icon" src="{{ url_for('static', filename='brand/system.svg') }}" alt="">
+    <span class="org">{{ _('المدير العام') }}</span><span class="sys">{{ _('غياب الطلبة والاستئذان') }}</span></a>
+  <nav class="side-nav">
+    <a class="nav-item{{ ' active' if (request.endpoint or '').startswith('super.tenant') }}" href="{{ url_for('super.tenants') }}"><i class="fa-solid fa-building" aria-hidden="true"></i><span>{{ _('المنظمات') }}</span></a>
+  </nav>
+</aside>
+<div class="shell">
+<header class="topbar">
+  <button class="icon-btn nav-toggle" type="button" data-nav-toggle aria-controls="sidebar" aria-label="{{ _('القائمة') }}"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+  <div class="page-title">{{ _('المدير العام') }}</div>
+  <div class="top-actions">
+    {% include '_lang.html' %}
+    <details class="user-menu">
+      <summary><span class="avatar" aria-hidden="true">{{ superadmin.username[:1] | upper }}</span><span class="uname">{{ superadmin.username }}</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+      <div class="menu">
+        <form method="post" action="{{ url_for('super.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> {{ _('تسجيل الخروج') }}</button></form>
+      </div>
+    </details>
+  </div>
 </header>
 <main>{% include '_flash.html' %}{% block content %}{% endblock %}</main>
+</div>
 </body></html>

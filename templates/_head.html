@@ -1,10 +1,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#1B3358">
+<meta name="theme-color" content="#0C67EC">
 <link rel="manifest" href="{{ url_for('manifest') }}">
 <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-<link rel="icon" href="{{ url_for('static', filename='icon-192.png') }}">
+<link rel="icon" href="{{ url_for('static', filename='brand/system.svg') }}" type="image/svg+xml">
+<link rel="icon" href="{{ url_for('static', filename='icon-192.png') }}" sizes="192x192">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 {# accent is validated as #RRGGBB before it is ever stored #}
 <style>:root{--accent:{{ accent }}}</style>

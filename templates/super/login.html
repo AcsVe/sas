@@ -1,12 +1,14 @@
 {% extends 'auth/_layout.html' %}
+{% from 'auth/_fields.html' import field %}
 {% block title %}{{ _('المدير العام') }}{% endblock %}
+{% block brand %}{{ _('غياب الطلبة والاستئذان') }}{% endblock %}
 {% block heading %}{{ _('دخول المدير العام') }}{% endblock %}
 {% block body %}
 {% if error %}<div class="alert danger">{{ _(error) }}</div>{% endif %}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="field"><label for="username">{{ _('اسم المستخدم') }}</label><input type="text" id="username" name="username" dir="ltr" required autofocus></div>
-  <div class="field"><label for="password">{{ _('كلمة المرور') }}</label><input type="password" id="password" name="password" dir="ltr" required></div>
-  <button class="btn" type="submit">{{ _('دخول') }}</button>
+  {{ field('username', _('اسم المستخدم'), 'fa-user-shield', autocomplete='username', autofocus=True) }}
+  {{ field('password', _('كلمة المرور'), 'fa-lock', type='password', autocomplete='current-password') }}
+  <button class="btn" type="submit"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> {{ _('دخول') }}</button>
 </form>
 {% endblock %}

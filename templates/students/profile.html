@@ -4,7 +4,7 @@
 <div class="toolbar">
   <h1>{{ s.full_name }} {% if not s.is_active %}<span class="badge bad">{{ _('موقوف') }}</span>{% endif %}</h1>
   <div class="actions-row">
-    {% if has_perm('attendance.record') %}<a class="btn small" href="{{ url_for('attendance.record_form', student=s.id) }}">➕ {{ _('تسجيل غياب أو تأخر') }}</a>{% endif %}
+    {% if has_perm('attendance.record') %}<a class="btn small" href="{{ url_for('attendance.record_form', student=s.id) }}"><i class="fa-solid fa-plus" aria-hidden="true"></i> {{ _('تسجيل غياب أو تأخر') }}</a>{% endif %}
     {% if has_perm('class_leave.record') %}<a class="btn small secondary" href="{{ url_for('leaves.index', section=s.section_id) }}">{{ _('خروج من الحصة') }}</a>{% endif %}
     {% if has_perm('students.manage') %}<a class="btn small secondary" href="{{ url_for('students.form', student_id=s.id) }}">{{ _('تعديل البيانات') }}</a>{% endif %}
   </div>
@@ -33,7 +33,7 @@
 <td><span class="badge {{ {'approved':'ok','rejected':'bad'}.get(r.status,'warn') }}">{{ _(r.status_label) }}</span></td>
 <td>{{ r.notes or '' }}</td>
 <td data-value="{{ _('أُشعر') if r.notified_at else _('لم يُشعر') }}">{% if r.notified_at %}<span class="badge ok">{{ _('أُشعر') }}{% if r.notified_count > 1 %} ×{{ r.notified_count }}{% endif %}</span>{% else %}—{% endif %}</td>
-<td>{% if r.attachment %}<a href="{{ url_for('attendance.attachment', att_id=r.attachment.id) }}">📎 {{ r.attachment.original_name }}</a>{% endif %}</td></tr>
+<td>{% if r.attachment %}<a href="{{ url_for('attendance.attachment', att_id=r.attachment.id) }}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i> {{ r.attachment.original_name }}</a>{% endif %}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="7" class="muted">{{ _('لا توجد سجلات') }}</td></tr>{% endfor %}</tbody></table></div>
 
 <h2>{{ _('الخروج من الحصة') }}</h2>

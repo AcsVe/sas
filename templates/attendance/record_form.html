@@ -17,7 +17,7 @@
   <div><label>{{ _('ملاحظات') }}</label><textarea name="notes" rows="2">{{ r.notes or '' }}</textarea></div>
   <div class="row" style="margin-top:12px">
     <div><label>{{ _('مرفق (تقرير طبي أو عذر — PDF أو صورة أو Word)') }}</label><input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.doc,.docx"></div>
-    {% if r.attachment %}<div><label>{{ _('المرفق الحالي') }}</label><a href="{{ url_for('attendance.attachment', att_id=r.attachment.id) }}">📎 {{ r.attachment.original_name }}</a>
+    {% if r.attachment %}<div><label>{{ _('المرفق الحالي') }}</label><a href="{{ url_for('attendance.attachment', att_id=r.attachment.id) }}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i> {{ r.attachment.original_name }}</a>
       <div class="checks"><label><input type="checkbox" name="remove_attachment" value="1"> {{ _('إزالة المرفق') }}</label></div></div>{% endif %}
   </div>
   {% if r.id %}<p class="hint">{{ _('الحالة:') }} {{ _(r.status_label) }}{% if r.approver %} — {{ r.approver.full_name }}{% endif %}</p>{% endif %}
