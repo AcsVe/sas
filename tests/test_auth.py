@@ -166,14 +166,15 @@ def test_csrf_enforced(app, two_tenants):
     app.config['WTF_CSRF_ENABLED'] = True
     c = app.test_client()
     r = c.post('/login', data={'username': 'admin', 'password': PASSWORD, 'org': 'a'})
-    assert r.status_code == 400
+    assert r.status_code == 302 and '/home' not in r.headers['Location']    # refused, back with a message
+    assert c.get('/home').status_code == 302                                   # not signed in
     token = csrf_from(c.get('/login').get_data(as_text=True))
     r = c.post('/login', data={'username': 'admin', 'password': PASSWORD, 'org': 'a',
                                'csrf_token': token})
     assert r.status_code == 302
-    # logout is POST-only and also needs the token
+    # logout is POST-only; it is not blocked by an old token, but a post from another site is refused
     assert c.get('/logout').status_code == 405
-    assert c.post('/logout').status_code == 400
+    assert c.post('/logout', headers={'Origin': 'https://evil.example'}).status_code == 400
 
 
 def test_session_cookie_flags(app, two_tenants):
@@ -188,3 +189,32 @@ def test_security_headers(app, two_tenants):
     assert r.headers['X-Frame-Options'] == 'DENY'
     assert "script-src 'self'" in r.headers['Content-Security-Policy']
     assert r.headers['Referrer-Policy'] == 'same-origin'
+
+
+def test_logout_and_old_forms_never_show_bad_request(app, two_tenants):
+    """A page left open while the session changed (another tab signed in again) posts a stale CSRF token:
+    signing out still works, and any other old form returns to its page with a message."""
+    from tests.conftest import login
+    app.config['WTF_CSRF_ENABLED'] = True
+    try:
+        c = app.test_client()
+        with app.app_context():
+            from models import Tenant
+            from extensions import db
+            from tenancy import tenant_bypass
+            with tenant_bypass():
+                t = db.session.get(Tenant, two_tenants['a'])
+            make_user(t, 'stale', ('admin',), email='stale@a.test')
+        app.config['WTF_CSRF_ENABLED'] = False
+        assert login(c, 'stale', org='a').status_code == 302
+        app.config['WTF_CSRF_ENABLED'] = True
+        r = c.post('/logout', data={'csrf_token': 'old'}, headers={'Referer': 'http://localhost/home'})
+        assert r.status_code == 302 and '/login' in r.headers['Location']
+        assert c.get('/home').status_code == 302                       # really signed out
+        r = c.post('/logout', headers={'Origin': 'https://evil.example'})
+        assert r.status_code == 400                                     # not from another site
+        r = c.post('/structure/stages/new', data={'csrf_token': 'old', 'name': 'x'},
+                   headers={'Referer': 'http://localhost/structure/stages/'})
+        assert r.status_code == 302 and r.headers['Location'].endswith('/structure/stages/')
+    finally:
+        app.config['WTF_CSRF_ENABLED'] = False

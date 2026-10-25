@@ -6,7 +6,7 @@ from flask import (Blueprint, render_template, request, redirect, url_for, sessi
 from sqlalchemy import func
 
 from authz import login_required
-from extensions import db
+from extensions import db, csrf
 from models import Tenant, User, LoginAttempt, PasswordResetToken
 from models.core import utcnow
 from security import verify_password, hash_password, password_problems
@@ -130,7 +130,14 @@ def login():
 
 
 @auth_bp.route('/logout', methods=['POST'])
+@csrf.exempt
 def logout():
+    """Signing out never fails on an old page (another tab signed in again, the page stayed open across a
+    restart…): it only ends this browser's session. A form posted from another site is still refused."""
+    from urllib.parse import urlparse
+    origin = request.headers.get('Origin') or request.headers.get('Referer') or ''
+    if origin and urlparse(origin).netloc != request.host:
+        abort(400)
     if g.get('user'):
         audit('auth.logout', 'user', g.user.id)
         db.session.commit()

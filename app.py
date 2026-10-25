@@ -224,6 +224,21 @@ def _register_error_handlers(app):
     def not_found(e):
         return render_template('errors/error.html', code=404, message=_('الصفحة غير موجودة')), 404
 
+    from flask_wtf.csrf import CSRFError
+
+    @app.errorhandler(CSRFError)
+    def csrf_error(e):
+        """An old form (the page stayed open, or the session changed in another tab): back to the page with a
+        clear message instead of «Bad Request»."""
+        from flask import flash, redirect, request, url_for
+        from urllib.parse import urlparse
+        from utils.i18n import _
+        flash(_('انتهت صلاحية الصفحة — أعد المحاولة'), 'warning')
+        back = request.referrer or ''
+        if not back or urlparse(back).netloc != request.host:
+            back = url_for('main.index')
+        return redirect(back)
+
     @app.errorhandler(TenantContextError)
     def tenant_error(e):
         app.logger.error('Tenant isolation violation: %s', e)
