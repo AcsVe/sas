@@ -27,18 +27,15 @@
   <div class="card"><h2><i class="fa-solid fa-envelope" aria-hidden="true"></i> {{ _('البريد') }}</h2>
   <div class="row">
     <div><label>{{ _('بريد المرسل (اختياري)') }}</label><input type="email" name="mail_sender" value="{{ t.mail_sender or '' }}" dir="ltr">
-      <p class="hint">{{ _('إن ترك فارغًا يُستخدم MS_SENDER_EMAIL من config.env.') }}</p></div>
+      <p class="hint">{{ _('إن تُرك فارغاً يُستخدم بريد المرسل الافتراضي.') }}</p></div>
     <div><label>{{ _('تذييل البريد') }}</label><input type="text" name="email_footer" value="{{ t.email_footer or '' }}"></div>
     <div><label>{{ _('تذييل التقارير المطبوعة') }}</label><input type="text" name="form_footer" value="{{ t.form_footer or '' }}"></div>
   </div>
   <div class="graph-status">
-    <b><i class="fa-brands fa-microsoft" aria-hidden="true"></i> Microsoft Graph</b>
-    {% if graph.ready %}<span class="badge ok">{{ _('مضبوط') }}</span>{% else %}<span class="badge bad">{{ _('غير مضبوط') }}</span>{% endif %}
-    <span class="badge {{ 'ok' if graph.tenant else 'bad' }}">Tenant ID</span>
-    <span class="badge {{ 'ok' if graph.client else 'bad' }}">Client ID</span>
-    <span class="badge {{ 'ok' if graph.secret else 'bad' }}">Client Secret</span>
+    <b><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> {{ _('إرسال البريد الإلكتروني') }}</b>
+    {% if graph.ready %}<span class="badge ok">{{ _('جاهز') }}</span>{% else %}<span class="badge bad">{{ _('غير جاهز') }}</span>{% endif %}
     <span class="muted">{{ _('المرسل:') }} <span class="mono">{{ graph.sender or '—' }}</span></span>
-    <p class="hint">{{ _('تُضبط هذه القيم في config.env عند التثبيت (1_setup.bat) ولا تُعرض هنا.') }}</p>
+    {% if not graph.ready %}<p class="hint">{{ _('لا تُرسَل رسائل البريد حالياً. تواصل مع مسؤول تقنية المعلومات لربط حساب بريد المؤسسة.') }}</p>{% endif %}
   </div></div>
   <button class="btn" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ _('حفظ') }}</button>
 </form>
