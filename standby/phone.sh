@@ -28,7 +28,7 @@ SAS_REMOTE="${SAS_REMOTE:-$REMOTE/sas}"
 [ -f "$HOME/.sas_standby" ] && . "$HOME/.sas_standby"
 TOKEN_FILE="$HOME/.sas_tunnel_token"
 export PYTHONUTF8=1
-LANG_UI="${LANG_UI:-ar}"
+LANG_UI="${LANG_UI:-en}"   # Termux cannot join or right-to-left Arabic: English unless chosen
 export IAJ_LANG="$LANG_UI"
 T() { if [ "$LANG_UI" = "en" ]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
 say() { printf '\n\033[1;36m» %s\033[0m\n' "$*"; }
