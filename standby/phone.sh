@@ -108,7 +108,7 @@ case "$1" in
 
   update-code)
     if [ -f "$SITE/standby/gh_update.py" ]; then
-      say "$(T "تنزيل الكود من GitHub" "Downloading code from GitHub")"
+      say "$(T "تحميل الكود من GitHub" "Downloading code from GitHub")"
       if python "$SITE/standby/gh_update.py"; then
         say "$(T "تم تحديث الكود" "Code updated")"; exit 0
       fi
@@ -124,7 +124,7 @@ case "$1" in
 
   restore)
     need_code; ensure_env
-    say "$(T "تنزيل أحدث بيانات غياب الطلبة من Drive" "Downloading the latest sas data from Drive")"
+    say "$(T "تحميل أحدث بيانات غياب الطلبة من Drive" "Downloading the latest sas data from Drive")"
     mkdir -p "$LOCAL_BK/db"
     if ! rclone lsf "$SAS_REMOTE/db" --include "*.db.gz" 2>/dev/null | grep -q . && ! ls "$LOCAL_BK/db"/*.db.gz >/dev/null 2>&1; then
       echo

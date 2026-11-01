@@ -1,6 +1,6 @@
 """ربط 8.iajaward.org (غياب الطلبة) بالكمبيوتر أو بالهاتف عبر Cloudflare API (بدون لوحة Cloudflare).
 
-    python ops/cf.py setup      # مرة واحدة: سجل DNS + ربط الاسم بنفق السيرفر + إنشاء نفق الهاتف sas-standby
+    python ops/cf.py setup      # مرة واحدة: سجل DNS + ربط الاسم بنفق الخادم + إنشاء نفق الهاتف sas-standby
     python ops/cf.py status     # أين يعمل 8.iajaward.org الآن + تشخيص
     python ops/cf.py phone      # 8.iajaward.org ← الهاتف
     python ops/cf.py server     # 8.iajaward.org ← الكمبيوتر
