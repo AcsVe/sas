@@ -1,6 +1,6 @@
 // App-shell cache + offline page only. No business data is cached:
 // attendance records always need a live connection.
-const CACHE_NAME = 'sas-shell-v3';
+const CACHE_NAME = 'sas-shell-v4';
 const SHELL = ['/static/offline.html', '/static/css/app.css', '/static/js/app.js',
   '/static/logo.png', '/static/icon-192.png', '/static/icon-512.png'];
 

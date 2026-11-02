@@ -13,6 +13,16 @@ from utils.i18n import _
 def create_app(overrides=None):
     load_config_env()
     app = Flask(__name__)
+    # رقم نسخة من تاريخ الملف في كل رابط إلى /static/: يتغير الرابط بعد كل تحديث، فلا يبقى المتصفح ولا
+    # التطبيق المثبّت على ملف تنسيق أو برنامج قديم من التخزين المؤقت.
+    @app.url_defaults
+    def _static_version(endpoint, values):
+        if endpoint == 'static' and 'filename' in values and 'v' not in values:
+            try:
+                values['v'] = int(os.path.getmtime(os.path.join(app.static_folder, values['filename'])))
+            except OSError:
+                pass
+
     app.config.update(build_config(overrides))
     os.makedirs(app.config['UPLOAD_DIR'], exist_ok=True)
     logging.basicConfig(level=logging.INFO)
