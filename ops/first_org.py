@@ -53,7 +53,9 @@ def main():
                 print(t('  ✓ توجد منظمة مسبقاً — لا شيء آخر', '  ✓ An organization exists already - nothing else to do'))
                 return
         print(t('\n  -- أول منظمة --', '\n  -- First organization --'))
-        name = ask(t('اسم المنظمة', 'Organization name'), 'الجمعية الثقافية العربية / مدرسة الرائد العربي')
+        name = ''
+        while not name:
+            name = ask(t('اسم المنظمة', 'Organization name'))
         slug = ask(t('الاسم المختصر (حروف إنجليزية)', 'Short name (latin letters)'), 'ras')
         host = (os.environ.get('BASE_URL') or '').split('//')[-1].split('/')[0]
         print(t('\n  -- مدير المنظمة --', '\n  -- Organization admin --'))
