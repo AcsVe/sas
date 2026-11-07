@@ -47,10 +47,10 @@
       <label class="sel"><input type="checkbox" data-row-select value="{{ u.id }}" aria-label="{{ _('تحديد') }} {{ u.full_name }}"></label>
       <div class="who">
         <span class="avatar">{{ u.full_name[:1] }}</span>
-        <div><b>{{ u.full_name }}</b><br><small class="mono muted">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</small></div>
+        <div><b><bdi>{{ u.full_name }}</bdi></b><br><small class="mono muted">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</small></div>
       </div>
       <div>{% for r in u.roles %}<span class="badge">{{ _(r.name) }}</span> {% else %}<span class="badge warn">{{ _('بلا دور') }}</span>{% endfor %} {{ status(u) }}</div>
-      {% if u.departments %}<div class="muted" style="font-size:.85rem"><i class="fa-solid fa-building" aria-hidden="true"></i> {% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}</div>{% endif %}
+      {% if u.departments %}<div class="muted" style="font-size:.85rem"><i class="fa-solid fa-building" aria-hidden="true"></i> {% for d in u.departments %}{{ d.icon }} <bdi>{{ d.name }}</bdi>{% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}</div>{% endif %}
       <div class="tasks">
         {% for g, items in groups|dictsort %}<div><b>{{ g }}:</b> {{ items|join(_('، ')) }}</div>
         {% else %}<span class="muted">{{ _('لا مهام مسندة — أسند دورًا من «تعديل».') }}</span>{% endfor %}
@@ -81,9 +81,9 @@
 {% for u in users %}
 <tr data-id="{{ u.id }}">
   <td class="sel"><input type="checkbox" data-row-select value="{{ u.id }}" aria-label="{{ _('تحديد') }} {{ u.full_name }}"></td>
-  <td>{{ u.full_name }}</td><td class="mono">{{ u.username }}</td><td class="mono">{{ u.email or '—' }}</td>
+  <td><bdi>{{ u.full_name }}</bdi></td><td class="mono">{{ u.username }}</td><td class="mono">{{ u.email or '—' }}</td>
   <td data-value="{{ u.roles|map(attribute='name')|join(_('، ')) }}">{% for r in u.roles %}<span class="badge">{{ _(r.name) }}</span> {% endfor %}</td>
-  <td>{% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}</td>
+  <td>{% for d in u.departments %}{{ d.icon }} <bdi>{{ d.name }}</bdi>{% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}</td>
   <td data-value="{% if not u.is_active %}{{ _('موقوف') }}{% elif u.locked_until and u.locked_until > now %}{{ _('مقفل مؤقتًا') }}{% else %}{{ _('فعّال') }}{% endif %}">{{ status(u) }}</td>
   <td class="mono" data-value="{{ u.last_login.isoformat() if u.last_login else '' }}">{{ u.last_login.strftime('%Y-%m-%d') if u.last_login else '—' }}</td>
   <td><a class="btn small secondary" href="{{ url_for('admin.user_edit', user_id=u.id) }}">{{ _('تعديل') }}</a></td>

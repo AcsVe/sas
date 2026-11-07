@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ _('الرئيسية') }}{% endblock %}
 {% block content %}
-<h1>{{ _('مرحبًا') }} {{ current_user.full_name }}</h1>
+<h1>{{ _('مرحبًا') }} <bdi>{{ current_user.full_name }}</bdi></h1>
 
 
 {% for title, kpis in sections %}

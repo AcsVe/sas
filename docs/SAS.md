@@ -128,3 +128,8 @@ pkg install -y git && git clone https://github.com/AcsVe/SAS ~/sas && bash ~/sas
 - **اللغتان** (`utils/i18n.py`): النص العربي هو المفتاح — `_('…')` في Python والقوالب، و`label(obj)` لاسم الصف بلغة الصفحة؛ الإنجليزية في `i18n/en.json`. `python tools_extract.py` يعرض النصوص الناقصة، و`tests/test_i18n.py` يفشل إن نقصت ترجمة أو بقي نص عربي في صفحة إنجليزية.
 - الاستيراد: `services/importing.py` (الطلبة والهيكل، يُخطط ثم يُطبّق)، `services/periods.py` (الحصص، وحصص الصف الخاصة `Period.grade_id`)، `services/ticker.py` (الشريط، `Tenant.ticker_json`). المعاينات تُحفظ مؤقتاً في `uploads/tenants/<id>/imports/` وتُحذف بعد يوم.
 - الاختبارات: `python -m pytest -q` — منها `tests/test_school.py` (الهيكل، الاستيراد، النطاق، الاعتماد، البريد، الخروج، العطل، التقارير، كل الصفحات)، و`tests/test_import.py` (بناء الشعب، الحصص من الجرس، المعلمون من القاعات والتذاكر، الشريط)، و`tests/test_i18n.py`.
+
+## فحص المظهر واللغة
+
+`python tests/ui_audit.py` (من بيئة فيها Playwright) يُنشئ قاعدتين مؤقتتين ببيانات عربية وإنجليزية (`tests/ui_seed.py`)، ويشغّل الخادم، ويفتح كل صفحة بواجهة عربية وإنجليزية على الحاسوب والهاتف، ويفحص: تباين النص مع شفافية الآباء، والخط الأصغر من 13 بكسل، واتجاه النص والتاريخ، والنص العربي غير المترجم في الواجهة الإنجليزية، ولغة النصوص ونصوص الإرشاد (placeholder وtitle وalt وaria-label)، والتمرير الأفقي، وأخطاء JavaScript. يجب أن ينتهي بـ 0 ملاحظات، ويُشغَّل آلياً مع كل رفع (`.github/workflows/checks.yml`).
+

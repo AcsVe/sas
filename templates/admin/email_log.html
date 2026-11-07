@@ -20,7 +20,7 @@
 <tr data-id="{{ r.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ r.id }}" aria-label="{{ _('تحديد') }}"></td><td class="mono">{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
 <td data-value="{{ {'sent':_('أُرسل'),'skipped':_('لم يُرسل')}.get(r.status,_('فشل')) }}">{% if r.status == 'sent' %}<span class="badge ok">{{ _('أُرسل') }}</span>{% elif r.status == 'skipped' %}<span class="badge warn">{{ _('لم يُرسل') }}</span>{% else %}<span class="badge bad">{{ _('فشل') }}</span>{% endif %}
 {% if r.status != 'sent' and not r.acknowledged %} <span class="badge warn">{{ _('جديد') }}</span>{% endif %}</td>
-<td class="mono">{{ r.recipients }}</td><td>{{ r.subject }}</td><td class="muted">{{ r.error or '' }}</td></tr>
+<td class="mono">{{ r.recipients }}</td><td><bdi>{{ r.subject }}</bdi></td><td class="muted">{{ r.error or '' }}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ _('لا توجد رسائل') }}</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

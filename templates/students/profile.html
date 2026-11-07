@@ -2,7 +2,7 @@
 {% block title %}{{ s.full_name }}{% endblock %}
 {% block content %}
 <div class="toolbar">
-  <h1>{{ s.full_name }} {% if not s.is_active %}<span class="badge bad">{{ _('موقوف') }}</span>{% endif %}</h1>
+  <h1><bdi>{{ s.full_name }}</bdi> {% if not s.is_active %}<span class="badge bad">{{ _('موقوف') }}</span>{% endif %}</h1>
   <div class="actions-row">
     {% if has_perm('attendance.record') %}<a class="btn small" href="{{ url_for('attendance.record_form', student=s.id) }}"><i class="fa-solid fa-plus" aria-hidden="true"></i> {{ _('تسجيل غياب أو تأخر') }}</a>{% endif %}
     {% if has_perm('class_leave.record') %}<a class="btn small secondary" href="{{ url_for('leaves.index', section=s.section_id) }}">{{ _('خروج من الحصة') }}</a>{% endif %}
@@ -11,9 +11,9 @@
 </div>
 <div class="card info-grid">
   <div><small>{{ _('رقم الطالب') }}</small><b class="mono">{{ s.student_number or '—' }}</b></div>
-  <div><small>{{ _('الشعبة') }}</small><b>{{ label(s.section.grade.stage) }} — {{ s.section.full_name }}</b></div>
+  <div><small>{{ _('الشعبة') }}</small><b><bdi>{{ label(s.section.grade.stage) }}</bdi> — <bdi>{{ s.section.full_name }}</bdi></b></div>
   <div><small>{{ _('الجنس') }}</small><b>{{ _(genders.get(s.gender, '—')) }}</b></div>
-  <div><small>{{ _('ولي الأمر') }}</small><b>{{ s.guardian_name or '—' }}</b>{% if s.guardian_relation %} <small>({{ s.guardian_relation }})</small>{% endif %}</div>
+  <div><small>{{ _('ولي الأمر') }}</small><b><bdi>{{ s.guardian_name or '—' }}</bdi></b>{% if s.guardian_relation %} <small>({{ s.guardian_relation }})</small>{% endif %}</div>
   <div><small>{{ _('هاتف ولي الأمر') }}</small><b class="mono">{{ s.guardian_phone or '—' }}</b></div>
   <div><small>{{ _('بريد ولي الأمر') }}</small><b class="mono">{{ s.guardian_email or '—' }}</b></div>
 </div>
@@ -31,7 +31,7 @@
 <tr><td class="mono">{{ r.record_date }}</td><td>{{ _(r.kind_label) }}</td>
 <td class="mono">{% if r.all_day %}{{ _('طوال اليوم') }}{% else %}{{ r.time_from or '' }}{% if r.time_to %} – {{ r.time_to }}{% endif %}{% endif %}</td>
 <td><span class="badge {{ {'approved':'ok','rejected':'bad'}.get(r.status,'warn') }}">{{ _(r.status_label) }}</span></td>
-<td>{{ r.notes or '' }}</td>
+<td><bdi>{{ r.notes or '' }}</bdi></td>
 <td data-value="{{ _('أُشعر') if r.notified_at else _('لم يُشعر') }}">{% if r.notified_at %}<span class="badge ok">{{ _('أُشعر') }}{% if r.notified_count > 1 %} ×{{ r.notified_count }}{% endif %}</span>{% else %}—{% endif %}</td>
 <td>{% if r.attachment %}<a href="{{ url_for('attendance.attachment', att_id=r.attachment.id) }}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i> {{ r.attachment.original_name }}</a>{% endif %}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="7" class="muted">{{ _('لا توجد سجلات') }}</td></tr>{% endfor %}</tbody></table></div>
@@ -40,8 +40,8 @@
 <div class="card table-wrap"><table data-table id="t-st-lv">
 <thead><tr><th data-sort="date">{{ _('التاريخ') }}</th><th data-filter="select">{{ _('النوع') }}</th><th>{{ _('الخروج') }}</th><th>{{ _('العودة') }}</th><th data-filter="select">{{ _('الحالة') }}</th><th data-filter="text">{{ _('ملاحظات') }}</th></tr></thead>
 <tbody>{% for l in leaves %}
-<tr><td class="mono">{{ l.leave_date }}</td><td>{{ label(l.leave_type) }}</td><td class="mono">{{ l.leave_time }}</td>
+<tr><td class="mono">{{ l.leave_date }}</td><td><bdi>{{ label(l.leave_type) }}</bdi></td><td class="mono">{{ l.leave_time }}</td>
 <td class="mono">{% if l.is_out %}<span class="badge warn">{{ _('خارج الصف') }}</span>{% else %}{{ l.return_time or '—' }}{% endif %}</td>
-<td>{{ _(l.status_label) }}</td><td>{{ l.notes or '' }}</td></tr>
+<td>{{ _(l.status_label) }}</td><td><bdi>{{ l.notes or '' }}</bdi></td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ _('لا توجد سجلات') }}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}

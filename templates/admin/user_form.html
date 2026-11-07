@@ -20,19 +20,19 @@
   <input type="hidden" name="scope_form" value="1">
   <label>{{ _('المراحل التي يتابعها (المشرف والسكرتير يرون طلبة هذه المراحل فقط)') }}</label>
   <div class="checks">{% for st in stages %}
-    <label><input type="checkbox" name="stages" value="{{ st.id }}" {% if st.id in user_stage_ids %}checked{% endif %}> {{ label(st) }}{% if not st.is_active %} ({{ _('متوقفة)') }}{% endif %}</label>
+    <label><input type="checkbox" name="stages" value="{{ st.id }}" {% if st.id in user_stage_ids %}checked{% endif %}> <bdi>{{ label(st) }}</bdi>{% if not st.is_active %} ({{ _('متوقفة)') }}{% endif %}</label>
   {% else %}<span class="muted">{{ _('لم تُضف مراحل بعد — أضفها من «الهيكل المدرسي».') }}</span>{% endfor %}</div><br>
   {% if stages %}
   <label>{{ _('الشعب التي يدرّسها (للمعلم؛ تُضاف إليها شعب الجدول الدراسي تلقائيًا)') }}</label>
   <div class="scope-grid">{% for st in stages %}{% for gr in st.grades %}
-    <fieldset><legend>{{ label(st) }} — {{ label(gr) }}</legend>
-    {% for sec in gr.sections %}<label><input type="checkbox" name="sections" value="{{ sec.id }}" {% if sec.id in user_section_ids %}checked{% endif %}> {{ sec.name }}</label>{% endfor %}
+    <fieldset><legend><bdi>{{ label(st) }}</bdi> — <bdi>{{ label(gr) }}</bdi></legend>
+    {% for sec in gr.sections %}<label><input type="checkbox" name="sections" value="{{ sec.id }}" {% if sec.id in user_section_ids %}checked{% endif %}> <bdi>{{ sec.name }}</bdi></label>{% endfor %}
     </fieldset>{% endfor %}{% endfor %}</div><br>
   {% endif %}
   {% if departments %}
   <label>{{ _('الأقسام الإدارية المرتبطة') }}</label>
   <div class="checks">{% for d in departments %}
-    <label><input type="checkbox" name="departments" value="{{ d.id }}" {% if d.id in dept_ids %}checked{% endif %}> {{ d.icon }} {{ d.name }}</label>
+    <label><input type="checkbox" name="departments" value="{{ d.id }}" {% if d.id in dept_ids %}checked{% endif %}> {{ d.icon }} <bdi>{{ d.name }}</bdi></label>
   {% endfor %}</div><br>
   {% endif %}
   <div class="row">

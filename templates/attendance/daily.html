@@ -2,7 +2,7 @@
 {% block title %}{{ _('التسجيل اليومي') }}{% endblock %}
 {% block content %}
 <div class="toolbar">
-  <h1>{{ _('التسجيل اليومي') }}{% if section %}: {{ label(section.grade.stage) }} — {{ section.full_name }}{% endif %}</h1>
+  <h1>{{ _('التسجيل اليومي') }}{% if section %}: <bdi>{{ label(section.grade.stage) }}</bdi> — <bdi>{{ section.full_name }}</bdi>{% endif %}</h1>
   <form method="get" class="actions-row">
     <select name="section" aria-label="{{ _('الشعبة') }}" style="width:auto" required><option value="">— {{ _('اختر الشعبة —') }}</option>
       {% for sec in sections %}<option value="{{ sec.id }}" {% if section and section.id == sec.id %}selected{% endif %}>{{ label(sec.grade.stage) }} — {{ sec.full_name }}</option>{% endfor %}</select>
@@ -11,7 +11,7 @@
   </form>
 </div>
 {% if not sections %}<div class="alert warning">{{ _('لا توجد شعب ضمن نطاقك — اطلب من مدير النظام ربط حسابك بمرحلة.') }}</div>{% endif %}
-{% if holiday %}<div class="alert info">{{ _('هذا اليوم عطلة معتمدة:') }} <b>{{ holiday.title }}</b> ({{ holiday.start_date }} {{ _('إلى') }} {{ holiday.end_date }}).</div>{% endif %}
+{% if holiday %}<div class="alert info">{{ _('هذا اليوم عطلة معتمدة:') }} <b><bdi>{{ holiday.title }}</bdi></b> ({{ holiday.start_date }} {{ _('إلى') }} {{ holiday.end_date }}).</div>{% endif %}
 {% if not school_day %}<div class="alert warning">{{ _('هذا اليوم ليس من أيام الدوام لهذه المرحلة.') }}</div>{% endif %}
 
 {% if section %}
@@ -38,7 +38,7 @@
   <th data-filter="text">{{ _('الطالب') }}</th><th data-filter="text">{{ _('الرقم') }}</th><th data-filter="select">{{ _('المسجّل اليوم') }}</th><th data-filter="select">{{ _('الآن') }}</th></tr></thead>
   <tbody>{% for s in students %}{% set ex = existing.get(s.id, []) %}
   <tr data-id="{{ s.id }}"><td class="sel"><input type="checkbox" data-row-select name="student_ids" value="{{ s.id }}" aria-label="{{ _('تحديد') }} {{ s.full_name }}"></td>
-  <td><a href="{{ url_for('students.profile', student_id=s.id) }}">{{ s.full_name }}</a></td>
+  <td><a href="{{ url_for('students.profile', student_id=s.id) }}"><bdi>{{ s.full_name }}</bdi></a></td>
   <td class="mono">{{ s.student_number or '—' }}</td>
   <td data-value="{{ ex|map(attribute='kind_label')|join(_('، ')) or '—' }}">{% for r in ex %}<span class="badge {{ {'approved':'ok','rejected':'bad'}.get(r.status,'warn') }}">{{ _(r.kind_label) }}</span> {% else %}—{% endfor %}</td>
   <td data-value="{{ _('خارج الصف') if leaves_out.get(s.id) else _('في الصف') }}">{% if leaves_out.get(s.id) %}<span class="badge warn">{{ _('خارج الصف:') }} {{ leaves_out[s.id].leave_type.name }}</span>{% else %}—{% endif %}</td></tr>

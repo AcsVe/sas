@@ -32,8 +32,8 @@
       <div><label>{{ _('وقت الخروج') }}</label><input type="time" name="leave_time" value="{{ now }}"></div>
       <div><label>{{ _('ملاحظات') }}</label><input type="text" name="notes"></div>
     </div>
-    <label>{{ _('الطلبة (') }}{{ section.full_name }}) <span class="checks" style="display:inline-flex;font-weight:500"><input type="checkbox" data-check-all="student_ids" aria-label="{{ _('تحديد الكل') }}"> {{ _('الكل') }}</span></label>
-    <div class="dept-checks">{% for s in students %}<label class="checks"><input type="checkbox" name="student_ids" value="{{ s.id }}"> {{ s.full_name }}</label>{% else %}<span class="muted">{{ _('لا يوجد طلبة') }}</span>{% endfor %}</div>
+    <label>{{ _('الطلبة (') }}<bdi>{{ section.full_name }}</bdi>) <span class="checks" style="display:inline-flex;font-weight:500"><input type="checkbox" data-check-all="student_ids" aria-label="{{ _('تحديد الكل') }}"> {{ _('الكل') }}</span></label>
+    <div class="dept-checks">{% for s in students %}<label class="checks"><input type="checkbox" name="student_ids" value="{{ s.id }}"> <bdi>{{ s.full_name }}</bdi></label>{% else %}<span class="muted">{{ _('لا يوجد طلبة') }}</span>{% endfor %}</div>
     <button class="btn" type="submit">{{ _('تسجيل الخروج') }}</button>
   </form>
   {% endif %}
@@ -58,11 +58,11 @@
 <tbody>{% for l in rows %}
 <tr data-id="{{ l.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ l.id }}" aria-label="{{ _('تحديد') }}"></td>
 <td class="mono">{{ l.leave_date }}</td>
-<td><a href="{{ url_for('students.profile', student_id=l.student.id) }}">{{ l.student.full_name }}</a></td>
-<td>{{ l.student.section.full_name }}</td><td>{{ label(l.leave_type) }}</td><td class="mono">{{ l.leave_time }}</td>
+<td><a href="{{ url_for('students.profile', student_id=l.student.id) }}"><bdi>{{ l.student.full_name }}</bdi></a></td>
+<td><bdi>{{ l.student.section.full_name }}</bdi></td><td><bdi>{{ label(l.leave_type) }}</bdi></td><td class="mono">{{ l.leave_time }}</td>
 <td data-value="{{ _('خارج الصف') if l.is_out else (l.return_time or '—') }}">{% if l.is_out %}<span class="badge warn">{{ _('خارج الصف') }}</span>{% else %}<span class="mono">{{ l.return_time or '—' }}</span>{% endif %}</td>
 <td data-value="{{ _(l.status_label) }}"><span class="badge {{ {'approved':'ok','rejected':'bad'}.get(l.status,'warn') }}">{{ _(l.status_label) }}</span></td>
-<td>{{ l.notes or '' }}</td><td>{{ l.creator.full_name if l.creator else '—' }}</td>
+<td><bdi>{{ l.notes or '' }}</bdi></td><td>{{ l.creator.full_name if l.creator else '—' }}</td>
 <td><a class="btn small secondary" href="{{ url_for('leaves.edit', leave_id=l.id) }}">{{ _('تعديل') }}</a></td></tr>
 {% else %}<tr class="empty-row"><td colspan="11" class="muted">{{ _('لا توجد سجلات خروج.') }}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}

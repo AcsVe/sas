@@ -10,7 +10,7 @@
     <div><label>{{ _('الوصف') }}</label><input type="text" name="description" value="{{ role.description or '' }}"></div>
   </div>
   {% for group in permissions.values()|map(attribute=1)|unique %}
-  <h2>{{ group }}</h2><div class="checks">
+  <h2>{{ _(group) }}</h2><div class="checks">
   {% for code, meta in permissions.items() if meta[1] == group %}
     <label><input type="checkbox" name="perms" value="{{ code }}" {% if code in have %}checked{% endif %}> {{ _(meta[0]) }}</label>
   {% endfor %}</div>

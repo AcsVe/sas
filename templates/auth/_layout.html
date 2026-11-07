@@ -13,5 +13,5 @@
   {% include '_flash.html' %}
   {% block body %}{% endblock %}
 </div></div>
-<footer class="auth-foot">© {{ now_year }} <b>{{ pick(current_tenant.name_ar, current_tenant.name_en) if current_tenant else _('غياب الطلبة والاستئذان') }}</b></footer>
+<footer class="auth-foot">© {{ now_year }} <b><bdi>{{ pick(current_tenant.name_ar, current_tenant.name_en) if current_tenant else _('غياب الطلبة والاستئذان') }}</bdi></b></footer>
 </body></html>

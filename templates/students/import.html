@@ -63,7 +63,7 @@
     <thead><tr><th class="sel"></th><th>{{ _('الورقة') }}</th><th>{{ _('الطلبة') }}</th><th>{{ _('ملاحظة') }}</th></tr></thead>
     <tbody>{% for sh in plan.sheets %}<tr>
       <td class="sel"><input type="checkbox" name="sheet" value="{{ sh.name }}" {% if sh.name not in plan.skipped %}checked{% endif %} aria-label="{{ sh.name }}"></td>
-      <td>{{ sh.name }}</td><td>{{ sh.students }}</td>
+      <td><bdi>{{ sh.name }}</bdi></td><td>{{ sh.students }}</td>
       <td>{% if sh.copy_of %}<span class="badge {{ 'warn' if sh.name in plan.skipped else '' }}">{{ _('{n} من طلبتها في «{s}»', n=sh.overlap, s=sh.copy_of) }}</span>
         {% if sh.name in plan.skipped %} <small class="muted">{{ _('نسخة — تُركت') }}</small>{% endif %}{% endif %}</td></tr>{% endfor %}</tbody>
   </table></div>
@@ -74,12 +74,12 @@
 <div class="card">
   <h2 style="margin-top:0">{{ _('الهيكل الذي سيُنشأ') }}</h2>
   {% if not can_create %}<div class="alert danger">{{ _('يلزم إنشاء صفوف أو شعب، وهذا يحتاج صلاحية «الهيكل المدرسي».') }}</div>{% endif %}
-  {% if plan.new_stages %}<p><b>{{ _('مراحل جديدة') }}:</b> {% for ns in plan.new_stages %}<span class="badge">{{ ns.name }}</span> {% endfor %}</p>{% endif %}
+  {% if plan.new_stages %}<p><b>{{ _('مراحل جديدة') }}:</b> {% for ns in plan.new_stages %}<span class="badge"><bdi>{{ ns.name }}</bdi></span> {% endfor %}</p>{% endif %}
   {% if plan.new_grades %}
   <div class="table-wrap"><table>
     <thead><tr><th>{{ _('الصف الجديد') }}</th><th>{{ _('بالإنجليزية') }}</th><th>{{ _('المرحلة') }}</th></tr></thead>
-    <tbody>{% for g in plan.new_grades %}<tr><td>{{ g.name }}</td><td>{{ g.name_en }}</td><td>
-      {% if g.stage_key %}{% for ns in plan.new_stages if ns.key == g.stage_key %}<span class="badge warn">{{ _('جديدة') }}</span> {{ ns.name }}{% endfor %}
+    <tbody>{% for g in plan.new_grades %}<tr><td><bdi>{{ g.name }}</bdi></td><td>{{ g.name_en }}</td><td>
+      {% if g.stage_key %}{% for ns in plan.new_stages if ns.key == g.stage_key %}<span class="badge warn">{{ _('جديدة') }}</span> <bdi>{{ ns.name }}</bdi>{% endfor %}
       {% else %}<select name="stage_{{ g.key }}" {% if not g.stage_id %}required{% endif %}>
         {% if not g.stage_id %}<option value="">{{ _('— اختر المرحلة —') }}</option>{% endif %}
         {% for st in stages %}<option value="{{ st.id }}" {% if st.id == g.stage_id %}selected{% endif %}>{{ label(st) }}</option>{% endfor %}
@@ -91,7 +91,7 @@
   {% endif %}
   {% if plan.new_sections %}
   <p><b>{{ _('شعب جديدة') }} ({{ plan.new_sections|length }}):</b>
-    {% for s in plan.new_sections %}<span class="badge">{{ s.grade_number }} / {{ s.name }}</span> {% endfor %}</p>
+    {% for s in plan.new_sections %}<span class="badge">{{ s.grade_number }} / <bdi>{{ s.name }}</bdi></span> {% endfor %}</p>
   {% endif %}
 </div>
 {% endif %}
@@ -111,12 +111,12 @@
 {% if plan.warnings %}
 <div class="card"><h2 style="margin-top:0">{{ _('للتحقق') }} ({{ plan.warnings|length }})</h2>
   <div class="table-wrap"><table><thead><tr><th>{{ _('الموضع') }}</th><th>{{ _('الاسم') }}</th><th>{{ _('الملاحظة') }}</th></tr></thead>
-  <tbody>{% for p in plan.warnings %}<tr><td class="mono">{{ p.where }}</td><td>{{ p.name }}</td><td>{{ p.why }}</td></tr>{% endfor %}</tbody></table></div></div>
+  <tbody>{% for p in plan.warnings %}<tr><td class="mono">{{ p.where }}</td><td><bdi>{{ p.name }}</bdi></td><td>{{ p.why }}</td></tr>{% endfor %}</tbody></table></div></div>
 {% endif %}
 {% if plan.problems %}
 <div class="card"><h2 style="margin-top:0">{{ _('أسطر لن تُستورد') }} ({{ plan.problems|length }})</h2>
   <div class="table-wrap"><table><thead><tr><th>{{ _('الموضع') }}</th><th>{{ _('الاسم') }}</th><th>{{ _('السبب') }}</th></tr></thead>
-  <tbody>{% for p in plan.problems %}<tr><td class="mono">{{ p.where }}</td><td>{{ p.name }}</td><td>{{ p.why }}</td></tr>{% endfor %}</tbody></table></div></div>
+  <tbody>{% for p in plan.problems %}<tr><td class="mono">{{ p.where }}</td><td><bdi>{{ p.name }}</bdi></td><td>{{ p.why }}</td></tr>{% endfor %}</tbody></table></div></div>
 {% endif %}
 
 <details class="card panel">
@@ -126,7 +126,7 @@
     <thead><tr><th data-filter="text">{{ _('الاسم') }}</th><th data-filter="text">{{ _('بالإنجليزية') }}</th>
       <th data-filter="select">{{ _('الشعبة') }}</th><th data-filter="select">{{ _('الحالة') }}</th><th data-filter="text">{{ _('الموضع في الملف') }}</th></tr></thead>
     <tbody>{% for r in plan.rows %}{% set st = {'new': _('جديد'), 'same': _('موجود'), 'move': _('سيُنقل'), 'other': _('في شعبة أخرى')}[r.status] %}
-      <tr><td>{{ r.name }}</td><td>{{ r.name_en if r.name_en and r.name_en != r.name else '—' }}</td>
+      <tr><td><bdi>{{ r.name }}</bdi></td><td>{{ r.name_en if r.name_en and r.name_en != r.name else '—' }}</td>
       <td>{% for p in plan.summary if p.place == r.place %}{{ p.grade }} / {{ p.section }}{% endfor %}</td>
       <td data-value="{{ st }}"><span class="badge {{ {'new': 'ok', 'move': 'warn'}.get(r.status, '') }}">{{ st }}</span>{% if r.current and r.status != 'same' %} <small class="muted">{{ r.current }}</small>{% endif %}</td>
       <td class="mono">{{ r.where }}</td></tr>{% endfor %}</tbody>

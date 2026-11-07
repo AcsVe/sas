@@ -58,9 +58,9 @@
     <div class="top-actions">
       {% include '_lang.html' %}
       <details class="user-menu">
-        <summary><span class="avatar" aria-hidden="true">{{ current_user.full_name[:1] }}</span><span class="uname">{{ current_user.full_name }}</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+        <summary><span class="avatar" aria-hidden="true">{{ current_user.full_name[:1] }}</span><span class="uname"><bdi>{{ current_user.full_name }}</bdi></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
         <div class="menu">
-          <div class="menu-head"><b>{{ current_user.full_name }}</b><small>{{ current_user.email or current_user.username }}</small></div>
+          <div class="menu-head"><b><bdi>{{ current_user.full_name }}</bdi></b><small>{{ current_user.email or current_user.username }}</small></div>
           <a href="{{ url_for('auth.change_password') }}"><i class="fa-solid fa-key" aria-hidden="true"></i> {{ _('تغيير كلمة المرور') }}</a>
           <form method="post" action="{{ url_for('auth.logout') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

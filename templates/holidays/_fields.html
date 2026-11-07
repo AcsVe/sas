@@ -13,7 +13,7 @@
 <fieldset class="scope-pick" data-show-when="scope_type={{ k }}"><legend>{{ _(lab) }}</legend>
   <div class="dept-checks">{% for o in choices[k] %}
     <label class="checks"><input type="checkbox" name="scope_ids_{{ k }}" value="{{ o.id }}" {% if h.scope_type == k and o.id in ids %}checked{% endif %}>
-      {% if k == 'sections' %}{{ label(o.grade.stage) }} — {{ o.full_name }}{% elif k == 'grades' %}{{ label(o.stage) }} — {{ label(o) }}{% else %}{{ label(o) }}{% endif %}</label>
+      {% if k == 'sections' %}<bdi>{{ label(o.grade.stage) }}</bdi> — <bdi>{{ o.full_name }}</bdi>{% elif k == 'grades' %}<bdi>{{ label(o.stage) }}</bdi> — <bdi>{{ label(o) }}</bdi>{% else %}<bdi>{{ label(o) }}</bdi>{% endif %}</label>
   {% else %}<span class="muted">{{ _('لا يوجد') }}</span>{% endfor %}</div>
 </fieldset>
 {% endfor %}

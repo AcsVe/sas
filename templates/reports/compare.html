@@ -20,7 +20,7 @@
 <div class="card table-wrap"><table data-table id="t-cmp">
 <thead><tr><th data-filter="text">{{ _('المرحلة') }}</th><th data-sort="num">{{ _('أيام الغياب (1)') }}</th><th data-sort="num">{{ _('النسبة (1) %') }}</th><th data-sort="num">{{ _('أيام الغياب (2)') }}</th><th data-sort="num">{{ _('النسبة (2) %') }}</th><th data-sort="num">{{ _('الفرق') }}</th></tr></thead>
 <tbody>{% for r in rows %}
-<tr><td>{{ label(r.stage) }}</td><td>{{ r.a.absent }}</td><td>{{ r.a.rate }}</td><td>{{ r.b.absent }}</td><td>{{ r.b.rate }}</td>
+<tr><td><bdi>{{ label(r.stage) }}</bdi></td><td>{{ r.a.absent }}</td><td>{{ r.a.rate }}</td><td>{{ r.b.absent }}</td><td>{{ r.b.rate }}</td>
 <td><span class="badge {{ 'bad' if r.diff > 0 else ('ok' if r.diff < 0 else '') }}">{{ '+' if r.diff > 0 else '' }}{{ r.diff }}</span></td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ _('لا توجد بيانات') }}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}

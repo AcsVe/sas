@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ _('تعديل خروج') }}{% endblock %}
 {% block content %}
-<h1>{{ _('تعديل خروج:') }} {{ lv.student.full_name }}</h1>
+<h1>{{ _('تعديل خروج:') }} <bdi>{{ lv.student.full_name }}</bdi></h1>
 {% for err in errors %}<div class="alert danger">{{ _(err) }}</div>{% endfor %}
 <div class="card"><form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

@@ -53,7 +53,7 @@
 {% for o in rows %}
 <tr data-id="{{ o.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ o.id }}" aria-label="{{ _('تحديد') }}"></td>
 {% for c in spec.columns %}{% set val = c.value(o) %}
-<td {% if c.sort == 'date' %}class="mono"{% endif %}>{% if c.label in ('الحالة',) %}<span class="badge {{ 'ok' if val == 'فعّال' else 'bad' }}">{{ _(val) }}</span>{% else %}{{ _(val) }}{% endif %}</td>
+<td {% if c.sort == 'date' %}class="mono"{% endif %}>{% if c.label in ('الحالة',) %}<span class="badge {{ 'ok' if val == 'فعّال' else 'bad' }}">{{ _(val) }}</span>{% else %}<bdi>{{ _(val) }}</bdi>{% endif %}</td>
 {% endfor %}
 <td style="white-space:nowrap"><a class="btn small secondary" href="{{ url_for('structure.edit', key=key, obj_id=o.id) }}">{{ _('تعديل') }}</a>
 {% if spec.child %}<a class="btn small secondary" href="{{ url_for('structure.items', key=spec.child[0], parent=o.id) }}">{{ _(spec.child[1]) }}</a>{% endif %}

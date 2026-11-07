@@ -2,7 +2,7 @@
 {% from 'students/_fields.html' import student_fields %}
 {% block title %}{{ _('تعديل طالب') }}{% endblock %}
 {% block content %}
-<h1>{{ _('تعديل:') }} {{ s.full_name }}</h1>
+<h1>{{ _('تعديل:') }} <bdi>{{ s.full_name }}</bdi></h1>
 {% for err in errors %}<div class="alert danger">{{ _(err) }}</div>{% endfor %}
 <div class="card"><form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
