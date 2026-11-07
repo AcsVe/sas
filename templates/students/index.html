@@ -53,11 +53,11 @@
 <tbody>
 {% for s in students %}
 <tr data-id="{{ s.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ s.id }}" aria-label="{{ _('تحديد') }} {{ s.full_name }}"></td>
-<td><a href="{{ url_for('students.profile', student_id=s.id) }}">{{ s.full_name }}</a></td>
+<td><a href="{{ url_for('students.profile', student_id=s.id) }}"><bdi>{{ s.full_name }}</bdi></a></td>
 <td class="mono">{{ s.student_number or '—' }}</td>
-<td>{{ label(s.section.grade.stage) }}</td><td>{{ label(s.section.grade) }}</td><td>{{ s.section.name }}</td>
+<td><bdi>{{ label(s.section.grade.stage) }}</bdi></td><td><bdi>{{ label(s.section.grade) }}</bdi></td><td><bdi>{{ s.section.name }}</bdi></td>
 <td>{{ _(genders.get(s.gender, '—')) }}</td>
-<td>{{ s.guardian_name or '—' }}{% if s.guardian_relation %} <small class="muted">({{ s.guardian_relation }})</small>{% endif %}</td>
+<td><bdi>{{ s.guardian_name or '—' }}</bdi>{% if s.guardian_relation %} <small class="muted">({{ s.guardian_relation }})</small>{% endif %}</td>
 <td class="mono">{{ s.guardian_phone or '—' }}</td>
 <td data-value="{{ _('له بريد') if s.guardian_email else '—' }}">{% if s.guardian_email %}<span class="mono">{{ s.guardian_email }}</span>{% else %}<span class="badge warn">{{ _('بلا بريد') }}</span>{% endif %}</td>
 <td>{{ counts.get(s.id, 0) }}</td>

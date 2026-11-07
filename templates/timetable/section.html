@@ -2,7 +2,7 @@
 {% block title %}{{ _('جدول') }} {{ sec.full_name }}{% endblock %}
 {% block content %}
 <div class="toolbar">
-  <h1>{{ _('جدول الحصص:') }} {{ label(sec.grade.stage) }} — {{ sec.full_name }}</h1>
+  <h1>{{ _('جدول الحصص:') }} <bdi>{{ label(sec.grade.stage) }}</bdi> — <bdi>{{ sec.full_name }}</bdi></h1>
   <a class="btn secondary small" href="{{ url_for('structure.items', key='periods', parent=sec.grade.stage_id) }}">{{ _('حصص المرحلة') }}</a>
 </div>
 {% if not by_day.values()|sum(start=[]) %}
@@ -17,9 +17,9 @@
   <thead><tr><th>{{ _('الحصة') }}</th><th>{{ _('الوقت') }}</th><th>{{ _('المادة') }}</th><th>{{ _('حساب المعلم') }}</th><th>{{ _('اسم المعلم (إن لم يكن له حساب)') }}</th></tr></thead>
   <tbody>{% for p in by_day[d] %}{% set e = entries.get(p.id) %}
   {% if p.kind == 'break' %}
-  <tr><td colspan="2" class="muted">{{ label(p) }}</td><td colspan="3" class="muted mono">{{ p.start_time }} – {{ p.end_time }}</td></tr>
+  <tr><td colspan="2" class="muted"><bdi>{{ label(p) }}</bdi></td><td colspan="3" class="muted mono">{{ p.start_time }} – {{ p.end_time }}</td></tr>
   {% else %}
-  <tr><td>{{ label(p) }}</td><td class="mono">{{ p.start_time }} – {{ p.end_time }}</td>
+  <tr><td><bdi>{{ label(p) }}</bdi></td><td class="mono">{{ p.start_time }} – {{ p.end_time }}</td>
   <td><input type="text" name="subject_{{ p.id }}" value="{{ e.subject if e else '' }}" aria-label="{{ _('المادة') }}"></td>
   <td><select name="teacher_{{ p.id }}" aria-label="{{ _('حساب المعلم') }}"><option value="">—</option>
     {% for u in teachers %}<option value="{{ u.id }}" {% if e and e.teacher_user_id == u.id %}selected{% endif %}>{{ u.full_name }}</option>{% endfor %}</select></td>

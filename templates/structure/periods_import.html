@@ -39,13 +39,13 @@
   <thead><tr><th data-filter="select">{{ _('المرحلة') }}</th><th data-filter="select">{{ _('الصف') }}</th><th data-filter="select">{{ _('اليوم') }}</th>
     <th data-nosort>{{ _('الحصص') }}</th><th data-sort="num">{{ _('الحالية') }}</th></tr></thead>
   <tbody>{% for t in plan.targets %}<tr>
-    <td>{{ label(stages[t.stage_id]) }}</td><td>{{ t.grade or _('كل الصفوف') }}</td><td>{{ _(t.day) }}</td>
+    <td><bdi>{{ label(stages[t.stage_id]) }}</bdi></td><td>{{ t.grade or _('كل الصفوف') }}</td><td>{{ _(t.day) }}</td>
     <td><div class="chips">{% for p in t.periods %}<span class="badge {{ 'warn' if p.kind == 'break' else '' }}" title="{{ p.label }}">{{ p.start }}–{{ p.end }}</span>{% endfor %}</div></td>
     <td>{{ t.current }}</td></tr>{% endfor %}</tbody>
 </table></div>
 {% if plan.missing %}
 <div class="alert info">{{ _('صفوف أو مراحل في الملف ليست في هذا النظام — تُركت حصصها:') }}
-  {% for m in plan.missing %}<b>{{ m.name }}</b> ({{ m.rows }}){% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}</div>
+  {% for m in plan.missing %}<b><bdi>{{ m.name }}</bdi></b> ({{ m.rows }}){% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}</div>
 {% endif %}
 {% if plan.problems %}
 <div class="card"><h2 style="margin-top:0">{{ _('أسطر لن تُستورد') }}</h2>
@@ -54,7 +54,7 @@
 {% endif %}
 <div class="card">
   <label class="checks"><input type="checkbox" name="school_days" value="1" checked> {{ _('اجعل أيام دوام كل مرحلة هي الأيام الواردة في الملف') }}</label>
-  <p class="hint">{% for sid, days in stage_days.items() %}{{ label(stages[sid]) }}: {% for d in days %}{{ _(day_names[d]) }}{% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}{% if not loop.last %} · {% endif %}{% endfor %}</p>
+  <p class="hint">{% for sid, days in stage_days.items() %}<bdi>{{ label(stages[sid]) }}</bdi>: {% for d in days %}{{ _(day_names[d]) }}{% if not loop.last %}{{ _('،') }} {% endif %}{% endfor %}{% if not loop.last %} · {% endif %}{% endfor %}</p>
   <p class="hint">{{ _('الحصص الموجودة تُعدَّل في مكانها بالترتيب، فيبقى جدول الشعب المرتبط بها.') }}</p>
 </div>
 <div class="actions-row">

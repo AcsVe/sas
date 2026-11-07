@@ -22,7 +22,7 @@
 <div class="card table-wrap"><table data-table id="t-send">
 <thead><tr><th data-filter="text">{{ _('الطالب') }}</th><th data-filter="select">{{ _('الشعبة') }}</th><th data-filter="text">{{ _('البريد') }}</th><th>{{ _('السجلات') }}</th></tr></thead>
 <tbody>{% for recs in plan.groups %}{% set st = recs[0].student %}
-<tr><td>{{ st.full_name }}</td><td>{{ st.section.full_name }}</td><td class="mono">{{ st.guardian_email }}</td>
+<tr><td><bdi>{{ st.full_name }}</bdi></td><td><bdi>{{ st.section.full_name }}</bdi></td><td class="mono">{{ st.guardian_email }}</td>
 <td>{% for r in recs %}<span class="badge">{{ _(r.kind_label) }} {{ r.record_date }}</span> {% endfor %}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="4" class="muted">{{ _('لا أحد') }}</td></tr>{% endfor %}</tbody></table></div>
 
@@ -30,7 +30,7 @@
 <div class="card table-wrap"><table data-table id="t-noemail">
 <thead><tr><th data-filter="text">{{ _('الطالب') }}</th><th data-filter="select">{{ _('الشعبة') }}</th><th>{{ _('هاتف ولي الأمر') }}</th><th>{{ _('السجل') }}</th><th data-nosort></th></tr></thead>
 <tbody>{% for r in plan.no_email %}
-<tr><td>{{ r.student.full_name }}</td><td>{{ r.student.section.full_name }}</td><td class="mono">{{ r.student.guardian_phone or '—' }}</td>
+<tr><td><bdi>{{ r.student.full_name }}</bdi></td><td><bdi>{{ r.student.section.full_name }}</bdi></td><td class="mono">{{ r.student.guardian_phone or '—' }}</td>
 <td>{{ _(r.kind_label) }} {{ r.record_date }}</td>
 <td>{% if has_perm('students.manage') %}<a class="btn small secondary" href="{{ url_for('students.form', student_id=r.student.id) }}">{{ _('إضافة البريد') }}</a>{% endif %}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="5" class="muted">{{ _('لا أحد') }}</td></tr>{% endfor %}</tbody></table></div>
@@ -39,7 +39,7 @@
 <div class="card table-wrap"><table data-table id="t-already">
 <thead><tr><th data-filter="text">{{ _('الطالب') }}</th><th>{{ _('السجل') }}</th><th>{{ _('وقت الإشعار') }}</th><th>{{ _('المرات') }}</th></tr></thead>
 <tbody>{% for r in plan.already %}
-<tr><td>{{ r.student.full_name }}</td><td>{{ _(r.kind_label) }} {{ r.record_date }}</td>
+<tr><td><bdi>{{ r.student.full_name }}</bdi></td><td>{{ _(r.kind_label) }} {{ r.record_date }}</td>
 <td class="mono">{{ r.notified_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ r.notified_count }}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="4" class="muted">{{ _('لا أحد') }}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}

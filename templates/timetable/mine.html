@@ -5,8 +5,8 @@
 <div class="card table-wrap"><table data-table id="t-mine">
 <thead><tr><th data-filter="select">{{ _('اليوم') }}</th><th data-filter="text">{{ _('الحصة') }}</th><th>{{ _('الوقت') }}</th><th data-filter="select">{{ _('الشعبة') }}</th><th data-filter="select">{{ _('المادة') }}</th><th data-nosort></th></tr></thead>
 <tbody>{% for e in rows %}{% set p = periods[e.period_id] %}{% set s = sections[e.section_id] %}
-<tr><td>{{ _(day_names[p.weekday]) }}</td><td>{{ label(p) }}</td><td class="mono">{{ p.start_time }} – {{ p.end_time }}</td>
-<td>{{ label(s.grade.stage) }} — {{ s.full_name }}</td><td>{{ e.subject or '—' }}</td>
+<tr><td>{{ _(day_names[p.weekday]) }}</td><td><bdi>{{ label(p) }}</bdi></td><td class="mono">{{ p.start_time }} – {{ p.end_time }}</td>
+<td><bdi>{{ label(s.grade.stage) }}</bdi> — <bdi>{{ s.full_name }}</bdi></td><td><bdi>{{ e.subject or '—' }}</bdi></td>
 <td>{% if has_perm('class_leave.record') %}<a class="btn small secondary" href="{{ url_for('leaves.index', section=s.id) }}">{{ _('خروج من الحصة') }}</a>{% endif %}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ _('لا توجد حصص مرتبطة بحسابك في الجدول.') }}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}

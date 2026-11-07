@@ -30,7 +30,7 @@
 <th data-filter="select">{{ _('النطاق') }}</th><th data-filter="text">{{ _('يشمل') }}</th><th data-filter="select">{{ _('الحالة') }}</th><th data-filter="select">{{ _('الفترة') }}</th><th data-nosort></th></tr></thead>
 <tbody>{% for h in rows %}
 <tr data-id="{{ h.id }}"><td class="sel">{% if can_touch[h.id] %}<input type="checkbox" data-row-select value="{{ h.id }}" aria-label="{{ _('تحديد') }}">{% endif %}</td>
-<td>{{ h.title }}</td><td class="mono">{{ h.start_date }}</td><td class="mono">{{ h.end_date }}</td>
+<td><bdi>{{ h.title }}</bdi></td><td class="mono">{{ h.start_date }}</td><td class="mono">{{ h.end_date }}</td>
 <td>{{ (h.end_date - h.start_date).days + 1 }}</td>
 <td>{{ _(dict(scopes)[h.scope_type]) }}</td><td>{{ names[h.id] }}</td>
 <td data-value="{{ _(h.status_label) }}"><span class="badge {{ {'approved':'ok','rejected':'bad'}.get(h.status,'warn') }}">{{ _(h.status_label) }}</span></td>

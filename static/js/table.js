@@ -194,6 +194,8 @@
         visibleBoxes(scope).forEach(function (cb) { if (cb.checked && !seen[cb.value]) { seen[cb.value] = 1; n++; } });
       });
       form.classList.toggle('has-selection', n > 0);
+      // لا إجراء جماعي دون تحديد: الزر معطّل (لا مُبهت) فيبقى نصه مقروءاً
+      form.querySelectorAll('button').forEach(function (b) { b.disabled = n === 0; });
       form.querySelectorAll('[data-selected-count]').forEach(function (el) { el.textContent = n; });
     });
   }

@@ -18,7 +18,7 @@
 <tbody>
 {% for d in departments %}
 <tr data-id="{{ d.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ d.id }}" aria-label="{{ _('تحديد') }} {{ d.name }}"></td>
-<td>{{ d.icon }} {{ d.name }}</td><td class="mono">{{ d.code }}</td><td>{{ _(types[d.dept_type]) }}</td>
+<td>{{ d.icon }} <bdi>{{ d.name }}</bdi></td><td class="mono">{{ d.code }}</td><td>{{ _(types[d.dept_type]) }}</td>
 <td>{{ d.manager_name or '—' }}</td><td class="mono">{{ d.emails or '—' }}</td>
 <td data-value="{{ _('فعّال') if d.is_active else _('متوقف') }}">{% if d.is_active %}<span class="badge ok">{{ _('فعّال') }}</span>{% else %}<span class="badge bad">{{ _('متوقف') }}</span>{% endif %}</td>
 <td class="mono">{{ d.sort_order }}</td>

@@ -292,8 +292,8 @@
  "الصف الرابع": "Grade 4",
  "الصف السابع": "Grade 7",
  "الصف المختار ليس من هذه المرحلة": "The chosen grade is not in this stage",
- "الصف والشعبة في عمودين، أو رمز واحد في عمود الصف أو في اسم الورقة: 4A، ‏4CPA، ‏Grade 6-C، ‏Five CP-A، ‏الصف الرابع / أ.": "Grade and section in two columns, or one code in the grade column or the sheet name: 4A, 4CPA, Grade 6-C, Five CP-A, الصف الرابع / أ.",
- "الصف يُعرف برقمه ويُطابق الصفوف الموجودة؛ والشعبة باسمها (A تطابق أ).": "The grade is recognised by its number and matched to the existing grades; the section by its name (A matches أ).",
+ "الصف والشعبة في عمودين، أو رمز واحد في عمود الصف أو في اسم الورقة: 4A، ‏4CPA، ‏Grade 6-C، ‏Five CP-A، ‏الصف الرابع / أ.": "Grade and section in two columns, or one code in the grade column or the sheet name: 4A, 4CPA, Grade 6-C, Five CP-A, or the grade and section written in Arabic.",
+ "الصف يُعرف برقمه ويُطابق الصفوف الموجودة؛ والشعبة باسمها (A تطابق أ).": "The grade is recognised by its number and matched to the existing grades; the section by its name (A matches the Arabic letter alif).",
  "الصفحة غير موجودة": "Page not found",
  "الصفوف": "Grades",
  "الصق القائمة (سطر لكل موظف، والأعمدة مفصولة بفاصلة أو Tab كما تُنسخ من Excel)": "Paste the list (one employee per line, columns separated by commas or tabs as copied from Excel)",
@@ -751,7 +751,7 @@
  "لون النص": "Text colour",
  "لون غير صالح (الصيغة ‎#1B3358‎)": "Invalid colour (format #1B3358)",
  "ما الذي يفهمه الاستيراد؟": "What does the import understand?",
- "ما لا يوجد من صفوف وشعب يُقترح إنشاؤه، ويُلحق الصف الجديد بالمرحلة التي يشمله اسمها (مثل «المرحلة الأساسية 4-6»).": "Missing grades and sections are proposed for creation, and a new grade goes to the stage whose name covers it (such as «المرحلة الأساسية 4-6»).",
+ "ما لا يوجد من صفوف وشعب يُقترح إنشاؤه، ويُلحق الصف الجديد بالمرحلة التي يشمله اسمها (مثل «المرحلة الأساسية 4-6»).": "Missing grades and sections are proposed for creation, and a new grade goes to the stage whose name covers it (such as “Primary stage 4-6”).",
  "متوقف": "Inactive",
  "متوقف)": "inactive)",
  "متوقفة)": "inactive)",
@@ -900,5 +900,7 @@
  "يوجد قسم فعّال آخر من النوع نفسه: {name}": "Another active department of the same type exists: {name}",
  "يوم-طالب": "Student-days",
  "— اختر المرحلة —": "— Choose the stage —",
- "… و{v} أخطاء أخرى": "… and {v} more errors"
+ "… و{v} أخطاء أخرى": "… and {v} more errors",
+ "إنهاء كل الجلسات": "End all sessions",
+ "إرسال رابط إعادة تعيين": "Send a reset link"
 }

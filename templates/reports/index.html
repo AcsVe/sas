@@ -33,7 +33,7 @@
 <div class="card table-wrap"><table data-table id="t-rep-stage">
 <thead><tr><th data-filter="text">{{ _('المرحلة') }}</th><th data-sort="num">{{ _('الطلبة') }}</th><th data-sort="num">{{ _('أيام الغياب') }}</th><th data-sort="num">{{ _('التأخر') }}</th><th data-sort="num">{{ _('المغادرة') }}</th><th data-sort="num">{{ _('النسبة %') }}</th></tr></thead>
 <tbody>{% for s in stages %}
-<tr><td>{{ label(s.stage) }}</td><td>{{ s.students }}</td><td><a href="{{ R(stage=s.stage.id, kind='absent') }}">{{ s.absent }}</a></td>
+<tr><td><bdi>{{ label(s.stage) }}</bdi></td><td>{{ s.students }}</td><td><a href="{{ R(stage=s.stage.id, kind='absent') }}">{{ s.absent }}</a></td>
 <td><a href="{{ R(stage=s.stage.id, kind='late') }}">{{ s.late }}</a></td><td><a href="{{ R(stage=s.stage.id, kind='early_leave') }}">{{ s.early }}</a></td>
 <td>{{ s.rate }}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ _('لا توجد بيانات') }}</td></tr>{% endfor %}</tbody></table></div>
@@ -43,7 +43,7 @@
 <thead><tr><th data-filter="select">{{ _('المرحلة') }}</th><th data-filter="select">{{ _('الصف') }}</th><th data-filter="text">{{ _('الشعبة') }}</th><th data-sort="num">{{ _('الطلبة') }}</th><th data-sort="num">{{ _('أيام الدوام') }}</th>
 <th data-sort="num">{{ _('أيام الغياب') }}</th><th data-sort="num">{{ _('بعذر') }}</th><th data-sort="num">{{ _('التأخر') }}</th><th data-sort="num">{{ _('المغادرة') }}</th><th data-sort="num">{{ _('النسبة %') }}</th></tr></thead>
 <tbody>{% for r in rows %}{% set s = r.section %}
-<tr><td>{{ label(s.grade.stage) }}</td><td>{{ label(s.grade) }}</td><td><a href="{{ url_for('students.index', section=s.id) }}">{{ s.name }}</a></td>
+<tr><td><bdi>{{ label(s.grade.stage) }}</bdi></td><td><bdi>{{ label(s.grade) }}</bdi></td><td><a href="{{ url_for('students.index', section=s.id) }}"><bdi>{{ s.name }}</bdi></a></td>
 <td>{{ r.students }}</td><td>{{ r.days }}</td>
 <td><a href="{{ R(section=s.id, kind='absent') }}">{{ r.absent }}</a></td><td>{{ r.excused }}</td>
 <td><a href="{{ R(section=s.id, kind='late') }}">{{ r.late }}</a></td><td><a href="{{ R(section=s.id, kind='early_leave') }}">{{ r.early }}</a></td>
@@ -54,7 +54,7 @@
 <div class="card table-wrap"><table data-table id="t-rep-top">
 <thead><tr><th data-filter="text">{{ _('الطالب') }}</th><th data-filter="select">{{ _('الشعبة') }}</th><th data-sort="num">{{ _('أيام الغياب') }}</th><th data-filter="select">{{ _('بريد ولي الأمر') }}</th></tr></thead>
 <tbody>{% for st, n in top %}
-<tr><td><a href="{{ url_for('students.profile', student_id=st.id) }}">{{ st.full_name }}</a></td><td>{{ label(st.section.grade.stage) }} — {{ st.section.full_name }}</td>
+<tr><td><a href="{{ url_for('students.profile', student_id=st.id) }}"><bdi>{{ st.full_name }}</bdi></a></td><td><bdi>{{ label(st.section.grade.stage) }}</bdi> — <bdi>{{ st.section.full_name }}</bdi></td>
 <td><a href="{{ R(student=st.id) }}">{{ n }}</a></td><td>{{ _('له بريد') if st.guardian_email else _('بلا بريد') }}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="4" class="muted">{{ _('لا يوجد غياب في هذه الفترة') }}</td></tr>{% endfor %}</tbody></table></div>
 {% if printing and current_tenant.form_footer %}<p class="muted" style="margin-top:18px;text-align:center">{{ current_tenant.form_footer }}</p>{% endif %}
