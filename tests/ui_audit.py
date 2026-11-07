@@ -71,7 +71,8 @@ PUBLIC = ['/login', '/forgot', '/super/login', '/no-such-page']
 
 AUDIT_JS = r"""(args) => {
   const [checkArabic, okList] = args;
-  const lum = (c) => { const m = c.match(/[\d.]+/g); if (!m) return null; const [r, g, b] = m.slice(0, 3).map((v) => { v = v / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+  const lum = (c) => { const m = c.match(/[\d.]+/g); if (!m) return null; const k = c.startsWith('color(') ? 1 : 255;   // color(srgb 0–1) من color-mix
+    const [r, g, b] = m.slice(0, 3).map((v) => { v = v / k; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
     return { l: 0.2126 * r + 0.7152 * g + 0.0722 * b, a: m.length > 3 ? Number(m[3]) : 1 }; };
   const bgOf = (el) => { while (el) { const s = getComputedStyle(el); const L = lum(s.backgroundColor);
       if (s.backgroundImage !== 'none') return null; if (L && L.a > 0.9) return L.l; el = el.parentElement; } return 1; };
@@ -132,7 +133,7 @@ LANG_JS = r"""(args) => {
   const add = (k, m) => { if (!seen.has(k)) { seen.add(k); out.push(m.slice(0, 150)); } };
   const AR = /[؀-ۿ]/;
   const ok = new Set(['iOS', 'iPhone', 'iPad', 'macOS', 'iCloud', 'eSchool', 'YouTube', 'WhatsApp', 'PayPal', 'OneDrive',
-                      'SharePoint', 'PowerPoint', 'GitHub', 'MenaPAY', 'MenaITech', 'ZKTeco', 'BellPlayer', 'JavaScript'].concat(okWords || []));
+                      'SharePoint', 'PowerPoint', 'GitHub', 'MenaPAY', 'MenaITech', 'ZKTeco', 'BellPlayer', 'JavaScript', 'aSc'].concat(okWords || []));
   // يُحذف البريد والروابط والنطاقات قبل الفحص: ليست كوداً
   const clean = (t) => t.replace(/\S+@\S+|https?:\/\/\S*|\b[\w.-]+\.(org|com|net|edu|jo|test|gov)\b\S*/gi, ' ');
   const CODE = [
@@ -150,6 +151,8 @@ LANG_JS = r"""(args) => {
   // عامي أو دخيل (القاعدة: «إذا/إن» لا «لو»، «فقط» لا «بس»، «الخادم» لا «السيرفر»، «الهاتف» لا «الموبايل»...)
   const COLLOQ = /(?:^|[\s،؛.؟!«(\/])(لو|بس|اللي|إللي|فاضي|فاضية|هيك|شو|مش|كمان|هلق|هلأ|منيح|ليش|وين|هاي|هاد|هادا|السيرفر|سيرفر|الموبايل|موبايل|تيمز|الباسورد|باسورد|يوزر|اليوزر|اللوجو|لوجو|الداتا|داتا|لينك|اللينك|فايل|الفايل|ايميل|إيميل|الإيميل|الايميل|اوكي|أوكي|نزّل|نزّلها|حمّلها|سيستم|السيستم|أبديت|ابديت)(?=$|[\s،؛.؟!»):\/])/;
   const LATIN_WORD = /\b[A-Za-z]{3,}\b/g;
+  // حقل لغته محدّدة (lang="en" لاسم بالإنجليزية، lang="ar" لاسم بالعربية): مثاله بتلك اللغة مقصود
+  const fieldLang = (el) => { const n = el.closest('[lang]'); return n && n !== document.documentElement ? n.getAttribute('lang').slice(0, 2) : null; };
   const check = (el, where, t) => {
     if (!t || !t.trim()) return;
     t = t.replace(/\s+/g, ' ').trim();
@@ -157,11 +160,11 @@ LANG_JS = r"""(args) => {
     const c = codeLike(t); if (c) add('c' + where + t, `code-like ${c} in ${where} «${t.slice(0, 60)}» ${tag}`);
     if (ui === 'ar') {
       const m = t.match(COLLOQ); if (m) add('q' + t, `colloquial «${m[1]}» in ${where} «${t.slice(0, 60)}» ${tag}`);
-      if (where !== 'text' && !AR.test(t)) {   // نص إرشاد كله بالإنجليزية (الرموز والأسماء بجانب العربية مقبولة)
+      if (where !== 'text' && !AR.test(t) && fieldLang(el) !== 'en') {   // نص إرشاد كله بالإنجليزية (الرموز والأسماء بجانب العربية مقبولة)
         const latin = (clean(t).match(LATIN_WORD) || []).filter((w) => !ok.has(w) && !/^x+$/i.test(w) && !/^(PDF|Excel|Word|CSV|QR|Microsoft|Google|Outlook|Teams|Android|Windows|Chrome|Edge|Wi|Fi|USB|SMS|API|URL|IP|PIN|OTP|ID|Cloudflare|Dahua|Render|Drive|Gmail|Zoom|Forms|Office|Apple|Huawei|Samsung)$/i.test(w));
         if (latin.length) add('l' + where + t, `English «${latin.slice(0, 3).join(' ')}» in ${where} of the Arabic interface «${t.slice(0, 60)}» ${tag}`);
       }
-    } else if (checkArabic && where !== 'text' && AR.test(t) && !el.closest('[data-content]') && !(okWords || []).includes(t)) {
+    } else if (checkArabic && where !== 'text' && AR.test(t) && fieldLang(el) !== 'ar' && !el.closest('[data-content]') && !(okWords || []).includes(t)) {
       add('a' + where + t, `Arabic in ${where} of the English interface «${t.slice(0, 60)}» ${tag}`);
     }
   };
